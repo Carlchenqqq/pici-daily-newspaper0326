@@ -1,0 +1,54 @@
+{
+  "batches": [
+    {
+      "batch_id": "盱眙育肥二扬州一育肥20250815",
+      "batch_name": "盱眙育肥二扬州一育肥20250815",
+      "farm_name": "盱眙二场",
+      "entry_date": "2025-08-15",
+      "target_temp": 0,
+      "units": [
+        "保育6-1",
+        "保育6-2",
+        "育肥6-1",
+        "育肥6-2",
+        "育肥6-3"
+      ],
+      "unit_types": {
+        "保育6-1": "baoyu",
+        "保育6-2": "baoyu",
+        "育肥6-1": "yufei",
+        "育肥6-2": "yufei",
+        "育肥6-3": "yufei"
+      },
+      "total_pig_count": 0,
+      "feeding_count": 1691,
+      "feed_ratio_130kg": 2.99,
+      "qualified_rate": 91
+    },
+    {
+      "batch_id": "盱眙育肥二扬州一育肥20250819",
+      "batch_name": "盱眙育肥二扬州一育肥20250819",
+      "farm_name": "盱眙二场",
+      "entry_date": "2025-08-19",
+      "target_temp": 0,
+      "units": [
+        "保育1-1",
+        "保育1-2",
+        "育肥1-1",
+        "育肥1-2",
+        "育肥1-3"
+      ],
+      "unit_types": {
+        "保育1-1": "baoyu",
+        "保育1-2": "baoyu",
+        "育肥1-1": "yufei",
+        "育肥1-2": "yufei",
+        "育肥1-3": "yufei"
+      },
+      "total_pig_count": 0,
+      "feeding_count": 1867,
+      "feed_ratio_130kg": 2.85,
+      "qualified_rate": 94
+    }
+  ]
+}

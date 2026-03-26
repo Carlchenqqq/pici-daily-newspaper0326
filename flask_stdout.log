@@ -1,0 +1,11 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+DEBUG: Found 1 batches: ['魏德曼二分场四线洪河桥一育肥猪20251218']
+DEBUG: Found 1 batches: ['魏德曼二分场四线洪河桥一育肥猪20251218']
+使用最新的死亡报表文件: 批次猪死亡导出-20260319.xlsx
+使用最新的死亡报表文件: 批次猪死亡导出-20260319.xlsx
+DEBUG: period_stats = {'temperature': {'avg': np.float64(24.9), 'max': np.float64(25.0), 'min': np.float64(24.6), 'compliant_days': 7, 'compliant_rate': 100.0}, 'humidity': {'avg': np.float64(56.3), 'max': np.float64(60.5), 'min': np.float64(51.1), 'compliant_days': 7, 'compliant_rate': 100.0}, 'co2': {'avg': np.float64(810.0), 'max': np.float64(950.0), 'compliant_days': 7, 'compliant_rate': 100.0}, 'pressure': {'avg': np.float64(16.6), 'compliant_days': 7, 'compliant_rate': 100.0}, 'total_days': 7}
+使用最新的死亡报表文件: 批次猪死亡导出-20260319.xlsx
+DEBUG: period_stats = {'temperature': {'avg': np.float64(26.6), 'max': np.float64(31.5), 'min': np.float64(19.4), 'compliant_days': 69, 'compliant_rate': 75.8}, 'humidity': {'avg': np.float64(52.7), 'max': np.float64(71.2), 'min': np.float64(40.4), 'compliant_days': 60, 'compliant_rate': 65.9}, 'co2': {'avg': np.float64(815.0), 'max': np.float64(2137.0), 'compliant_days': 87, 'compliant_rate': 95.6}, 'pressure': {'avg': np.float64(6.4), 'compliant_days': 75, 'compliant_rate': 82.4}, 'total_days': 91}
+DEBUG: Found 1 batches: ['魏德曼二分场四线洪河桥一育肥猪20251218']
+DEBUG: Using cached data for historical:魏德曼二分场四线洪河桥一育肥猪20251218:None:None:None

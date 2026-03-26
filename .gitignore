@@ -1,0 +1,31 @@
+# Data files
+盱眙*/
+扬州*/
+*.csv
+*.xlsx
+*.xls
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test/Debug files
+test_*.html
+test_*.py
+debug_*.log
+
+# Virtual environment
+venv/
+env/
+.env

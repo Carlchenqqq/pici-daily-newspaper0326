@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批次环控报告（离线版）</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf8f5;--bg-card:#ffffff;--bg-card-alt:#f5f2ed;--bg-hover:#ebe7e0;
+  --text:#1a1612;--text-secondary:#5c5347;--text-muted:#9c9184;
+  --border:#e5dfd5;--border-light:#d4ccc0;
+  --accent:#2d6a4f;--accent-light:#40916c;--accent-glow:rgba(45,106,79,0.3);
+  --green:#2d6a4f;--green-light:#40916c;--green-bg:rgba(45,106,79,0.08);
+  --red:#c1121f;--red-bg:rgba(193,18,31,0.08);
+  --orange:#e07a2f;--orange-bg:rgba(224,122,47,0.08);
+  --yellow:#d4a03c;--yellow-bg:rgba(212,160,60,0.08);
+  --shadow:0 2px 12px rgba(26,22,18,0.06);--shadow-md:0 4px 20px rgba(26,22,18,0.08);
+  --radius:16px;--radius-sm:12px;--radius-xs:8px;
+}
+body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;min-height:100vh;font-weight:400;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5,h6{font-weight:600;line-height:1.3;color:var(--text)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:4px}
+
+.header{background:rgba(255,255,255,0.92);border-bottom:1px solid var(--border);padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
+.logo{font-size:17px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:12px;letter-spacing:-0.4px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.header-meta{font-size:13px;color:var(--text-muted);text-align:right;line-height:1.5}
+.header-meta strong{color:var(--text-secondary)}
+
+.container{max-width:1400px;margin:0 auto;padding:32px 40px}
+
+.section{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:28px 32px;margin-bottom:24px;box-shadow:var(--shadow)}
+.section-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.section-title::before{content:'';display:block;width:4px;height:20px;background:var(--accent);border-radius:2px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab-btn{padding:8px 18px;font-size:14px;font-weight:500;color:var(--text-muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.2s;margin-bottom:-1px}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-btn:hover:not(.active){color:var(--text-secondary)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{background:var(--bg-card-alt);border-radius:var(--radius-sm);padding:16px 20px;border:1px solid var(--border)}
+.kpi-label{font-size:12px;color:var(--text-muted);margin-bottom:4px}
+.kpi-value{font-size:26px;font-weight:700;color:var(--accent);font-family:monospace;line-height:1.2}
+.kpi-unit{font-size:12px;color:var(--text-muted);margin-top:2px}
+
+/* Table */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--bg-card-alt);padding:10px 12px;text-align:center;font-weight:600;color:var(--text-secondary);border:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:5}
+td{padding:8px 10px;text-align:center;border:1px solid var(--border);white-space:nowrap}
+tr:hover td{background:var(--bg-hover)}
+
+/* Metric cell tooltip */
+.metric-cell{cursor:pointer;position:relative;transition:all 0.15s}
+.metric-cell:hover{filter:brightness(0.92)}
+
+/* Compliance badge */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;font-family:monospace}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-orange{background:var(--orange-bg);color:var(--orange)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+
+/* Chart containers */
+.chart-container{width:100%;height:320px;position:relative}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}
+
+/* Tooltip */
+#dailyCurveTooltip{display:none;position:fixed;z-index:9999;background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:16px;width:340px;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+
+/* Anomaly list */
+.anomaly-item{padding:12px 16px;border-radius:var(--radius-xs);border-left:3px solid;margin-bottom:8px;font-size:13px}
+.anomaly-high{border-color:var(--red);background:var(--red-bg)}
+.anomaly-medium{border-color:var(--orange);background:var(--orange-bg)}
+.anomaly-low{border-color:var(--yellow);background:var(--yellow-bg)}
+.anomaly-title{font-weight:600;margin-bottom:4px}
+.anomaly-desc{color:var(--text-secondary);line-height:1.5}
+
+/* Unit tag */
+.unit-tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--green-bg);color:var(--green);margin-right:4px}
+
+/* Footer */
+.footer{text-align:center;padding:32px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);margin-top:16px}
+.footer strong{color:var(--text-secondary)}
+
+/* Sticky date col */
+.sticky-col{position:sticky;left:0;z-index:4;background:var(--bg-card);box-shadow:2px 0 5px rgba(0,0,0,0.06)}
+tr:hover .sticky-col{background:var(--bg-hover)}
+
+/* Summary stat row */
+.stat-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+.stat-item{font-size:13px;color:var(--text-secondary)}
+.stat-item strong{color:var(--text);font-weight:600}
+
+.empty-hint{text-align:center;padding:40px;color:var(--text-muted);font-size:14px}
+
+.rec-card{display:flex;gap:12px;padding:14px 16px;background:var(--bg-card-alt);border-radius:var(--radius-xs);border:1px solid var(--border);margin-bottom:10px}
+.rec-priority{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;height:fit-content;white-space:nowrap}
+.p0{background:#fee2e2;color:#dc2626}.p1{background:#fff3e0;color:#f57c00}.p2{background:#e8f5e9;color:#388e3c}
+.rec-action{font-weight:600;font-size:14px;margin-bottom:4px}
+.rec-detail{font-size:13px;color:var(--text-secondary);line-height:1.5}
+.rec-effect{font-size:12px;color:var(--green);margin-top:4px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">🐷</div>
+    批次环控深度分析报告
+  </div>
+  <div class="header-meta" id="headerMeta">加载中...</div>
+</header>
+
+<div class="container" id="app">
+  <div class="empty-hint">⏳ 正在渲染报告，请稍候...</div>
+</div>
+
+<div id="dailyCurveTooltip">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #f1f5f9">
+    <div><h4 id="ttUnit" style="margin:0;font-size:14px;font-weight:700;color:#334155"></h4><p id="ttDateMetric" style="margin:2px 0 0;font-size:12px;color:#94a3b8"></p></div>
+    <div><span id="ttCompliance" style="font-size:12px;font-weight:700;font-family:monospace;padding:4px 8px;border-radius:4px"></span></div>
+  </div>
+  <div id="ttChart" style="width:100%;height:200px"></div>
+  <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:10px;color:#64748b">
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;vertical-align:middle;margin-right:4px"></span>达标</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#dc2626;vertical-align:middle;margin-right:4px"></span><span id="ttAbnormalText">异常</span></span>
+  </div>
+</div>
+
+<!-- 数据由外部注入 window.REPORT_DATA -->
+<script>
+// ══════════════════════════════════════════════
+//  工具函数
+// ══════════════════════════════════════════════
+function fmt(v, d=1){ return (v===null||v===undefined||v===''||isNaN(+v)) ? '-' : (+v).toFixed(d); }
+function fmtPct(v){ return (v===null||v===undefined||isNaN(+v)) ? '-' : (+v).toFixed(1)+'%'; }
+function badgeClass(v, good=90, medium=70){
+  if(v===null||v===undefined||isNaN(+v)) return '';
+  return +v>=good ? 'badge-green' : (+v>=medium ? 'badge-orange' : 'badge-red');
+}
+function cellBg(v, good=90, medium=70){
+  if(v===null||v===undefined||isNaN(+v)) return {bg:'var(--bg)',color:'var(--text-muted)'};
+  if(+v>=good) return {bg:'rgba(45,106,79,0.10)',color:'#2d6a4f'};
+  if(+v>=medium) return {bg:'rgba(224,122,47,0.10)',color:'#e07a2f'};
+  return {bg:'rgba(193,18,31,0.10)',color:'#c1121f'};
+}
+
+// Tab 切换
+function switchTab(groupId, tabId){
+  document.querySelectorAll(`#${groupId} .tab-btn`).forEach(b=>b.classList.toggle('active', b.dataset.tab===tabId));
+  document.querySelectorAll(`#${groupId} .tab-content`).forEach(c=>c.classList.toggle('active', c.id===tabId));
+}
+
+// ══════════════════════════════════════════════
+//  Tooltip（悬浮曲线）
+// ══════════════════════════════════════════════
+let _ttChart = null;
+
+function showDailyCurveTooltip(e, cell){
+  const unit = cell.dataset.unit;
+  const date = cell.dataset.date;
+  const metric = cell.dataset.metric;
+  const compliance = parseFloat(cell.dataset.compliance);
+  const targetTemp = parseFloat(cell.dataset.targettemp)||26;
+  const curve = JSON.parse(decodeURIComponent(cell.dataset.curve||'[]'));
+
+  const tt = document.getElementById('dailyCurveTooltip');
+  const rect = cell.getBoundingClientRect();
+  let left = rect.right > window.innerWidth-360 ? rect.left-360 : rect.right+10;
+  let top = rect.top - 80;
+  if(top<10) top=10;
+  if(left<10) left=10;
+  tt.style.left=left+'px'; tt.style.top=top+'px'; tt.style.display='block';
+
+  document.getElementById('ttUnit').textContent=unit;
+
+  const metricMap={temperature:'温度',humidity:'湿度',co2:'CO2',pressure:'压差'};
+  const targetMap={
+    temperature:`目标: ${targetTemp}℃ (±3℃)`,
+    humidity:'目标: 50%-85%',
+    co2:'目标: ≤3000ppm',
+    pressure:'目标: >0Pa'
+  };
+  const abnormalMap={
+    temperature:'异常(±3℃)',humidity:'异常(<50%或>85%)',co2:'异常(>3000)',pressure:'异常(≤0)'
+  };
+  document.getElementById('ttDateMetric').textContent=`${date} ${metricMap[metric]||metric} 24h曲线 (${targetMap[metric]||''})`;
+  document.getElementById('ttAbnormalText').textContent=abnormalMap[metric]||'异常';
+
+  const rateStyle = compliance>=90 ? 'background:#d1fae5;color:#047857' : (compliance>=70 ? 'background:#fff3e0;color:#f57c00' : 'background:#dc2626;color:white');
+  const ttc=document.getElementById('ttCompliance');
+  ttc.textContent=`达标: ${compliance}%`; ttc.style.cssText=`font-size:12px;font-weight:700;font-family:monospace;padding:4px 8px;border-radius:4px;${rateStyle}`;
+
+  const container=document.getElementById('ttChart');
+  if(_ttChart){ _ttChart.dispose(); }
+  _ttChart=echarts.init(container);
+
+  const valid=curve.map(v=>(v!==null&&!isNaN(v))?v:null);
+
+  let option;
+  if(metric==='pressure'){
+    const markAreas=[];
+    for(let i=0;i<24;i++){
+      if(valid[i]!==null&&valid[i]<=0) markAreas.push([{xAxis:i-0.5,itemStyle:{color:'rgba(220,38,38,0.15)'}},{xAxis:i+0.5}]);
+    }
+    option={
+      grid:{top:20,right:20,bottom:20,left:35},
+      xAxis:{type:'category',data:Array.from({length:24},(_,i)=>i+':00'),axisLabel:{fontSize:9},axisTick:{show:false},axisLine:{lineStyle:{color:'#e2e8f0'}}},
+      yAxis:{type:'value',min:-50,max:50,splitLine:{lineStyle:{type:'dashed',color:'#f1f5f9'}},axisLabel:{fontSize:9}},
+      series:[{data:valid,type:'line',smooth:true,symbol:'none',lineStyle:{width:3},
+        markLine:{symbol:'none',data:[{yAxis:0,lineStyle:{color:'#cbd5e1',type:'dashed',width:1},label:{show:false}}]},
+        markArea:markAreas.length>0?{silent:true,data:markAreas}:undefined}]
+    };
+  } else {
+    const configMap={
+      temperature:{minV:targetTemp-3,maxV:targetTemp+3,yMin:targetTemp-4,yMax:targetTemp+4},
+      humidity:{minV:50,maxV:85,yMin:0,yMax:100},
+      co2:{minV:0,maxV:3000,yMin:0,yMax:5000}
+    };
+    const cfg=configMap[metric]||{minV:0,maxV:100,yMin:0,yMax:100};
+    const vals=valid.filter(v=>v!==null);
+    if(vals.length>0){
+      cfg.yMin=Math.min(Math.min(...vals),cfg.minV)-1;
+      cfg.yMax=Math.max(Math.max(...vals),cfg.maxV)+1;
+    }
+    const pieces=metric==='co2'
+      ? [{gt:-100,lte:cfg.maxV,color:'#10b981'},{gt:cfg.maxV,lte:10000,color:'#dc2626'}]
+      : [{gt:-100,lte:cfg.minV,color:'#dc2626'},{gt:cfg.minV,lte:cfg.maxV,color:'#10b981'},{gt:cfg.maxV,lte:200,color:'#dc2626'}];
+    option={
+      grid:{top:20,right:20,bottom:20,left:35},
+      xAxis:{type:'category',data:Array.from({length:24},(_,i)=>i+':00'),axisLabel:{fontSize:9},axisTick:{show:false},axisLine:{lineStyle:{color:'#e2e8f0'}}},
+      yAxis:{type:'value',min:cfg.yMin,max:cfg.yMax,splitLine:{lineStyle:{type:'dashed',color:'#f1f5f9'}},axisLabel:{fontSize:9}},
+      visualMap:{show:false,dimension:1,pieces,outOfRange:{color:'#dc2626'}},
+      series:[{data:valid,type:'line',smooth:true,symbol:'none',lineStyle:{width:3},
+        markLine:{symbol:'none',data:[
+          {yAxis:cfg.minV,lineStyle:{color:'#cbd5e1',type:'dashed',width:1},label:{show:false}},
+          {yAxis:cfg.maxV,lineStyle:{color:'#cbd5e1',type:'dashed',width:1},label:{show:false}}
+        ]}}]
+    };
+  }
+  _ttChart.setOption(option);
+}
+
+function hideDailyCurveTooltip(){
+  document.getElementById('dailyCurveTooltip').style.display='none';
+}
+
+// ══════════════════════════════════════════════
+//  渲染概览
+// ══════════════════════════════════════════════
+function renderOverview(data){
+  const bi=data.batch_info||{};
+  const dr=data.date_range||{};
+  const ps=data.period_statistics||{};
+
+  let html=`
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">批次名称</div><div class="kpi-value" style="font-size:18px">${bi.batch_name||bi.batch_id||'-'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">统计周期</div><div class="kpi-value" style="font-size:16px">${dr.start_date||'-'} → ${dr.end_date||'-'}</div><div class="kpi-unit">${dr.total_days||0} 天</div></div>
+    <div class="kpi-card"><div class="kpi-label">平均温度</div><div class="kpi-value">${fmt(ps.avg_temperature)}</div><div class="kpi-unit">℃</div></div>
+    <div class="kpi-card"><div class="kpi-label">平均湿度</div><div class="kpi-value">${fmt(ps.avg_humidity)}</div><div class="kpi-unit">%</div></div>
+    <div class="kpi-card"><div class="kpi-label">温度达标率</div><div class="kpi-value">${fmt(ps.temp_compliance_pct)}</div><div class="kpi-unit">%（目标≥90%）</div></div>
+    <div class="kpi-card"><div class="kpi-label">湿度达标率</div><div class="kpi-value">${fmt(ps.humi_compliance_pct)}</div><div class="kpi-unit">%（目标≥90%）</div></div>
+  </div>`;
+
+  // 异常汇总
+  const anomalies=data.historical_anomalies||[];
+  if(anomalies.length>0){
+    const high=anomalies.filter(a=>(a.severity||a.level)==='高'||a.risk_level==='高');
+    const med=anomalies.filter(a=>(a.severity||a.level)==='中'||a.risk_level==='中');
+    html+=`<div class="stat-row">
+      <div class="stat-item">🔴 高风险异常 <strong>${high.length}</strong> 项</div>
+      <div class="stat-item">🟡 中等异常 <strong>${med.length}</strong> 项</div>
+      <div class="stat-item">📋 共 <strong>${anomalies.length}</strong> 项异常记录</div>
+    </div>`;
+    html+=`<div>`;
+    anomalies.slice(0,8).forEach(a=>{
+      const sev=a.severity||a.level||'低';
+      const cls=sev==='高'?'anomaly-high':(sev==='中'?'anomaly-medium':'anomaly-low');
+      const unit=a.unit?`<span class="unit-tag">${a.unit}</span>`:'';
+      html+=`<div class="anomaly-item ${cls}">${unit}<div class="anomaly-title">${a.type||a.title||'异常'}</div><div class="anomaly-desc">${a.description||a.detail||''}</div></div>`;
+    });
+    html+=`</div>`;
+  } else {
+    html+=`<div class="empty-hint">✅ 该周期内未检测到显著异常</div>`;
+  }
+
+  return html;
+}
+
+// ══════════════════════════════════════════════
+//  渲染每日达标率热力表
+// ══════════════════════════════════════════════
+function renderDailyTable(data){
+  const ds=data.daily_summaries||[];
+  if(!ds.length) return '<div class="empty-hint">暂无每日数据</div>';
+
+  // 收集所有单元
+  const unitsSet=new Set();
+  ds.forEach(d=>Object.keys(d.unit_details||{}).forEach(u=>unitsSet.add(u)));
+  const units=Array.from(unitsSet).sort();
+
+  const metrics=[
+    {key:'temperature',label:'温度',unit:'℃',good:90,medium:70},
+    {key:'humidity',label:'湿度',unit:'%',good:80,medium:60},
+    {key:'co2',label:'CO2',unit:'ppm',good:80,medium:60},
+    {key:'pressure',label:'压差',unit:'Pa',good:70,medium:50}
+  ];
+
+  let html=`<div class="table-wrap"><table>
+  <thead><tr>
+    <th class="sticky-col" rowspan="2" style="min-width:90px">日期</th>
+    ${units.map(u=>`<th colspan="${metrics.length}" style="border-left:2px solid var(--border)">${u}</th>`).join('')}
+  </tr><tr>
+    ${units.map(()=>metrics.map(m=>`<th style="font-weight:500;min-width:54px">${m.label}</th>`).join('')).join('<th style="width:2px;padding:0;border:none"></th>')}
+  </tr></thead><tbody>`;
+
+  ds.forEach(day=>{
+    html+=`<tr><td class="sticky-col" style="font-weight:600;min-width:90px">${day.date}</td>`;
+    units.forEach((unit,ui)=>{
+      const ud=day.unit_details?.[unit]||{};
+      const pigCount=ud.pig_count||0;
+      const targetTemp=ud.target_temp||26;
+      metrics.forEach((m,mi)=>{
+        const md=ud[m.key]||{};
+        const compliance=md.within_target_pct??null;
+        const curve=md.hourly_curve||[];
+        const isEmpty=pigCount===0||curve.length===0||curve.every(v=>v===null);
+        if(isEmpty){
+          html+=`<td style="background:var(--bg);color:var(--text-muted);${mi===0?'border-left:2px solid var(--border)':''}">-</td>`;
+        } else {
+          const c=cellBg(compliance,m.good,m.medium);
+          const curveJson=encodeURIComponent(JSON.stringify(curve));
+          html+=`<td class="metric-cell" data-unit="${unit}" data-date="${day.date}" data-metric="${m.key}" data-compliance="${compliance}" data-targettemp="${targetTemp}" data-curve="${curveJson}" style="background:${c.bg};color:${c.color};padding:6px 4px;${mi===0?'border-left:2px solid var(--border)':''}font-weight:600;font-size:14px" onmouseenter="showDailyCurveTooltip(event,this)" onmouseleave="hideDailyCurveTooltip()">${fmt(compliance,0)}%</td>`;
+        }
+      });
+    });
+    html+=`</tr>`;
+  });
+
+  html+=`</tbody></table></div>
+  <div style="margin-top:12px;font-size:12px;color:var(--text-muted);padding:10px 14px;background:var(--bg-card-alt);border-radius:8px">
+    <strong>说明：</strong>悬停单元格可查看当日 24h 曲线。颜色：
+    <span style="color:#2d6a4f">■</span> 优秀(≥${metrics[0].good}%) &nbsp;
+    <span style="color:#e07a2f">■</span> 一般(≥${metrics[0].medium}%) &nbsp;
+    <span style="color:#c1121f">■</span> 偏差(&lt;${metrics[0].medium}%)
+  </div>`;
+  return html;
+}
+
+// ══════════════════════════════════════════════
+//  渲染趋势图（ECharts）
+// ══════════════════════════════════════════════
+let _trendCharts=[];
+
+function renderTrendCharts(data){
+  const td=data.trend_data||{};
+  const dates=td.dates||[];
+  if(!dates.length) return '<div class="empty-hint">暂无趋势数据</div>';
+
+  return `
+  <div id="trendTabGroup">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="trend-temp" onclick="switchTab('trendTabGroup','trend-temp')">温度</button>
+      <button class="tab-btn" data-tab="trend-humi" onclick="switchTab('trendTabGroup','trend-humi')">湿度</button>
+      <button class="tab-btn" data-tab="trend-co2" onclick="switchTab('trendTabGroup','trend-co2')">CO2</button>
+      <button class="tab-btn" data-tab="trend-press" onclick="switchTab('trendTabGroup','trend-press')">压差</button>
+    </div>
+    <div id="trend-temp" class="tab-content active"><div id="chart-temp" class="chart-container"></div></div>
+    <div id="trend-humi" class="tab-content"><div id="chart-humi" class="chart-container"></div></div>
+    <div id="trend-co2" class="tab-content"><div id="chart-co2" class="chart-container"></div></div>
+    <div id="trend-press" class="tab-content"><div id="chart-press" class="chart-container"></div></div>
+  </div>`;
+}
+
+function initTrendCharts(data){
+  const td=data.trend_data||{};
+  const dates=td.dates||[];
+  if(!dates.length) return;
+
+  const colors=['#3b82f6','#10b981','#f97316','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f43f5e'];
+
+  function buildChart(domId, metricKey, yLabel, refLines){
+    const dom=document.getElementById(domId);
+    if(!dom) return;
+    const metric=td[metricKey]||{};
+    // 优先使用 units（按单元分组），fallback 到 avg 单条线
+    const unitData=metric.units||null;
+    const avgData=metric.avg||null;
+
+    const series=[];
+    if(unitData&&Object.keys(unitData).length>0){
+      Object.keys(unitData).sort().forEach((u,i)=>{
+        series.push({
+          name:u, type:'line', smooth:true, symbol:'none',
+          data:(unitData[u]||[]).map(v=>v??null),
+          lineStyle:{width:2,color:colors[i%colors.length]},
+          itemStyle:{color:colors[i%colors.length]}
+        });
+      });
+    } else if(avgData){
+      series.push({name:'平均',type:'line',smooth:true,symbol:'none',data:avgData.map(v=>v??null),lineStyle:{width:2,color:colors[0]},itemStyle:{color:colors[0]}});
+    }
+    if(!series.length) return;
+
+    const c=echarts.init(dom);
+    _trendCharts.push(c);
+    const markLines=(refLines||[]).map(y=>({yAxis:y,lineStyle:{color:'#cbd5e1',type:'dashed',width:1},label:{show:false}}));
+    c.setOption({
+      grid:{top:40,right:20,bottom:60,left:55},
+      tooltip:{trigger:'axis',confine:true},
+      legend:{data:series.map(s=>s.name),bottom:5,textStyle:{fontSize:11}},
+      xAxis:{type:'category',data:dates,axisLabel:{rotate:45,fontSize:10},axisTick:{show:false}},
+      yAxis:{type:'value',name:yLabel,nameTextStyle:{fontSize:11},splitLine:{lineStyle:{type:'dashed',color:'#f1f5f9'}}},
+      series:series.map(s=>({...s,markLine:markLines.length?{symbol:'none',silent:true,data:markLines}:undefined}))
+    });
+  }
+
+  buildChart('chart-temp','temperature','℃',[]);
+  buildChart('chart-humi','humidity','%',[50,85]);
+  buildChart('chart-co2','co2','ppm',[3000]);
+  buildChart('chart-press','pressure','Pa',[0]);
+
+  window.addEventListener('resize',()=>_trendCharts.forEach(c=>c.resize()));
+}
+
+// ══════════════════════════════════════════════
+//  渲染单元对比
+// ══════════════════════════════════════════════
+function renderUnitComparison(data){
+  const uc=data.unit_comparison||{};
+  const unitStats=uc.units||uc;  // 兼容两种格式
+  const units=Object.keys(unitStats).sort();
+  if(!units.length) return '<div class="empty-hint">暂无单元对比数据</div>';
+
+  const best=uc.best_unit||'';
+  const worst=uc.worst_unit||'';
+
+  let html=`<div class="stat-row">`;
+  if(best) html+=`<div class="stat-item">🏆 最优单元：<strong>${best}</strong></div>`;
+  if(worst&&worst!==best) html+=`<div class="stat-item">⚠️ 需关注：<strong>${worst}</strong></div>`;
+  html+=`</div>`;
+
+  html+=`<div class="table-wrap"><table>
+    <thead><tr>
+      <th>单元</th><th>类型</th><th>目标温度</th>
+      <th>温度均值</th><th>温度达标率</th><th>温度稳定性</th>
+      <th>湿度均值</th><th>湿度达标率</th>
+      <th>CO2均值</th><th>CO2达标率</th>
+      <th>压差达标率</th><th>异常天数</th><th>评分</th>
+    </tr></thead><tbody>`;
+
+  units.forEach(u=>{
+    const s=unitStats[u]||{};
+    const temp=s.temperature||{};
+    const humi=s.humidity||{};
+    const co2=s.co2||{};
+    const press=s.pressure||{};
+    const anomaly=s.anomaly||{};
+    const anomalyDays=anomaly.total_days||0;
+    const score=anomaly.score??null;
+    const highlight=u===worst?'background:rgba(193,18,31,0.04)':(u===best?'background:rgba(45,106,79,0.04)':'');
+
+    html+=`<tr style="${highlight}">
+      <td><strong>${u}</strong>${u===best?'&nbsp;🏆':''}</td>
+      <td>${s.unit_type||'-'}</td>
+      <td>${s.target_temp||26}℃</td>
+      <td>${fmt(temp.avg)}℃</td>
+      <td><span class="badge ${badgeClass(temp.within_target_pct,90,70)}">${fmtPct(temp.within_target_pct)}</span></td>
+      <td>${temp.stability||'-'}</td>
+      <td>${fmt(humi.avg)}%</td>
+      <td><span class="badge ${badgeClass(humi.within_target_pct,80,60)}">${fmtPct(humi.within_target_pct)}</span></td>
+      <td>${fmt(co2.avg,0)}ppm</td>
+      <td><span class="badge ${badgeClass(co2.within_target_pct,80,60)}">${fmtPct(co2.within_target_pct)}</span></td>
+      <td><span class="badge ${badgeClass(press.within_target_pct,70,50)}">${fmtPct(press.within_target_pct)}</span></td>
+      <td style="color:${anomalyDays>5?'var(--red)':anomalyDays>2?'var(--orange)':'var(--green)'};font-weight:600">${anomalyDays}天</td>
+      <td style="font-weight:700;color:${score&&score>=90?'var(--green)':score&&score>=70?'var(--orange)':'var(--red)'}">${score!==null?score+' 分':'-'}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>`;
+  return html;
+}
+
+// ══════════════════════════════════════════════
+//  渲染死亡分析
+// ══════════════════════════════════════════════
+function renderDeathAnalysis(data){
+  const da=data.death_analysis||{};
+  const total=da.total_deaths||0;
+  const cumulative=da.cumulative_trend||[];
+
+  let html=`<div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+    <div class="kpi-card"><div class="kpi-label">周期死亡总数</div><div class="kpi-value" style="color:var(--red)">${total}</div><div class="kpi-unit">头</div></div>
+    <div class="kpi-card"><div class="kpi-label">死亡率</div><div class="kpi-value" style="color:var(--red)">${fmt(da.death_rate,2)}</div><div class="kpi-unit">%</div></div>
+    <div class="kpi-card"><div class="kpi-label">有死亡记录天数</div><div class="kpi-value">${da.days_with_death||0}</div><div class="kpi-unit">天</div></div>
+  </div>`;
+
+  if(cumulative.length>0){
+    html+=`<div id="chart-death" class="chart-container" style="height:240px;margin-top:16px"></div>`;
+  }
+
+  const byUnit=da.by_unit||{};
+  if(Object.keys(byUnit).length>0){
+    html+=`<div class="table-wrap" style="margin-top:16px"><table>
+    <thead><tr><th>单元</th><th>死亡数</th><th>死亡率</th><th>主要死因</th></tr></thead><tbody>`;
+    Object.entries(byUnit).forEach(([u,s])=>{
+      html+=`<tr><td><strong>${u}</strong></td><td>${s.total||0}头</td><td>${fmt(s.rate,2)}%</td><td>${(s.reasons||[]).join('、')||'-'}</td></tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }
+
+  return html;
+}
+
+function initDeathChart(data){
+  const da=data.death_analysis||{};
+  const ds=data.daily_summaries||[];
+  const cumulative=da.cumulative_trend||[];
+  const dom=document.getElementById('chart-death');
+  if(!dom||!cumulative.length) return;
+
+  const dates=ds.map(d=>d.date);
+  const c=echarts.init(dom);
+  _trendCharts.push(c);
+  c.setOption({
+    grid:{top:20,right:20,bottom:50,left:45},
+    tooltip:{trigger:'axis'},
+    xAxis:{type:'category',data:dates.slice(0,cumulative.length),axisLabel:{rotate:45,fontSize:9},axisTick:{show:false}},
+    yAxis:{type:'value',name:'累计头',nameTextStyle:{fontSize:10},splitLine:{lineStyle:{type:'dashed',color:'#f1f5f9'}}},
+    series:[{name:'累计死亡',type:'line',smooth:true,symbol:'none',data:cumulative,
+      lineStyle:{width:2,color:'#c1121f'},areaStyle:{color:'rgba(193,18,31,0.08)'}}]
+  });
+}
+
+// ══════════════════════════════════════════════
+//  主渲染入口
+// ══════════════════════════════════════════════
+function render(data){
+  const bi=data.batch_info||{};
+  const dr=data.date_range||{};
+  const genTime=new Date().toLocaleString('zh-CN');
+
+  // 更新 header
+  document.getElementById('headerMeta').innerHTML=`
+    <strong>${bi.batch_name||bi.batch_id||'未知批次'}</strong><br>
+    ${dr.start_date||'-'} 至 ${dr.end_date||'-'}（${dr.total_days||0}天）`;
+
+  // 更新 title
+  document.title=`批次环控报告 - ${bi.batch_name||bi.batch_id} - ${dr.start_date} 至 ${dr.end_date}`;
+
+  // 构建主体
+  const app=document.getElementById('app');
+  app.innerHTML=`
+  <!-- 概览 -->
+  <section class="section">
+    <div class="section-title">批次概览</div>
+    <div id="overview-content">${renderOverview(data)}</div>
+  </section>
+
+  <!-- 每日达标率 -->
+  <section class="section">
+    <div class="section-title">每日环控达标率</div>
+    <div id="daily-table-content">${renderDailyTable(data)}</div>
+  </section>
+
+  <!-- 趋势图 -->
+  <section class="section">
+    <div class="section-title">环境参数趋势</div>
+    <div id="trend-content">${renderTrendCharts(data)}</div>
+  </section>
+
+  <!-- 单元对比 -->
+  <section class="section">
+    <div class="section-title">单元综合对比</div>
+    <div id="unit-cmp-content">${renderUnitComparison(data)}</div>
+  </section>
+
+  <!-- 死亡分析 -->
+  <section class="section">
+    <div class="section-title">死亡 / 淘汰分析</div>
+    <div id="death-content">${renderDeathAnalysis(data)}</div>
+  </section>
+
+  <div class="footer">
+    <p><strong>批次：</strong>${bi.batch_name||bi.batch_id||'-'} &nbsp;|&nbsp; <strong>数据周期：</strong>${dr.start_date} 至 ${dr.end_date}（共 ${dr.total_days||0} 天）</p>
+    <p style="margin-top:4px">本报告为离线静态版本 · 生成时间：${genTime}</p>
+  </div>`;
+
+  // 初始化图表（DOM 已存在）
+  initTrendCharts(data);
+  initDeathChart(data);
+}
+
+// ══════════════════════════════════════════════
+//  启动：读取注入的数据
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', function(){
+  if(typeof window.REPORT_DATA !== 'undefined'){
+    render(window.REPORT_DATA);
+  } else {
+    document.getElementById('app').innerHTML='<div class="empty-hint">❌ 报告数据未找到，请通过系统正常导出</div>';
+  }
+});
+</script>
+</body>
+</html>
