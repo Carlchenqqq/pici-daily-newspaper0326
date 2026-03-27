@@ -1144,6 +1144,487 @@
             color: var(--text-muted);
             font-size: 12px;
         }
+
+        /* ========== 横向对比模式样式 ========== */
+
+        /* 对比批次卡片 */
+        .comparison-batch-cards {
+            display: flex;
+            align-items: stretch;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .comparison-batch-card {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .comparison-batch-card.batch-a {
+            border-top: 4px solid var(--green);
+        }
+
+        .comparison-batch-card.batch-b {
+            border-top: 4px solid var(--orange);
+        }
+
+        .comparison-batch-header {
+            padding: 16px 20px;
+            background: var(--bg-card-alt);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comparison-batch-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .batch-a-badge {
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid rgba(45, 106, 79, 0.2);
+        }
+
+        .batch-b-badge {
+            background: var(--orange-bg);
+            color: var(--orange);
+            border: 1px solid rgba(224, 122, 47, 0.2);
+        }
+
+        .comparison-batch-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .comparison-batch-info {
+            padding: 16px 20px;
+        }
+
+        .comparison-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-info-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .comparison-info-value {
+            font-size: 13px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .comparison-vs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-muted);
+            background: var(--bg-card-alt);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        /* 对比指标卡片网格 */
+        .comparison-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .comparison-metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .comparison-metric-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .comparison-metric-icon {
+            font-size: 20px;
+        }
+
+        .comparison-metric-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .comparison-metric-values {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .comparison-metric-value {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .metric-number {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .metric-unit {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .batch-a-value .metric-number {
+            color: var(--green);
+        }
+
+        .batch-b-value .metric-number {
+            color: var(--orange);
+        }
+
+        .comparison-metric-diff {
+            text-align: center;
+        }
+
+        .diff-better {
+            color: var(--green);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .diff-worse {
+            color: var(--orange);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .diff-neutral {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .comparison-metric-detail {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* 阶段筛选按钮 */
+        .comparison-stage-filter {
+            display: flex;
+            gap: 8px;
+        }
+
+        .stage-filter-btn {
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .stage-filter-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .stage-filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* 单元对比表格 */
+        .comparison-units-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .comparison-units-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .comparison-units-group-title {
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--bg-card-alt);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-units-table-wrap {
+            overflow-x: auto;
+        }
+
+        .comparison-units-table {
+            min-width: 800px;
+        }
+
+        .comparison-unit-row {
+            background: var(--bg-card-alt) !important;
+        }
+
+        .comparison-unit-row:hover td {
+            background: var(--bg-card-alt) !important;
+        }
+
+        .comparison-unit-name {
+            font-weight: 700 !important;
+            color: var(--text) !important;
+            font-size: 13px !important;
+        }
+
+        .comparison-unit-batch-a td {
+            background: rgba(45, 106, 79, 0.04) !important;
+        }
+
+        .comparison-unit-batch-b td {
+            background: rgba(224, 122, 47, 0.04) !important;
+        }
+
+        .batch-tag {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            text-align: center;
+            line-height: 20px;
+        }
+
+        .batch-a-tag {
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid rgba(45, 106, 79, 0.2);
+        }
+
+        .batch-b-tag {
+            background: var(--orange-bg);
+            color: var(--orange);
+            border: 1px solid rgba(224, 122, 47, 0.2);
+        }
+
+        /* 趋势对比图表 */
+        .comparison-chart-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .comparison-chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .batch-a-color {
+            background: var(--green);
+        }
+
+        .batch-b-color {
+            background: var(--orange);
+        }
+
+        .comparison-chart-wrapper {
+            height: 400px;
+        }
+
+        /* 死亡分析对比卡片 */
+        .comparison-death-cards {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .comparison-death-card {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .comparison-death-card.batch-a {
+            border-top: 4px solid var(--green);
+        }
+
+        .comparison-death-card.batch-b {
+            border-top: 4px solid var(--orange);
+        }
+
+        .comparison-death-header {
+            padding: 16px 20px;
+            background: var(--bg-card-alt);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-death-stats {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .comparison-death-stat {
+            text-align: center;
+            padding: 12px;
+            background: var(--bg-card-alt);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .comparison-death-stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .comparison-death-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .comparison-death-diff {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+            padding: 20px;
+            background: var(--purple-bg);
+            border-radius: var(--radius);
+            border: 1px solid rgba(107, 91, 149, 0.2);
+        }
+
+        .comparison-death-diff-item {
+            text-align: center;
+        }
+
+        .diff-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .diff-value {
+            font-size: 20px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .text-danger {
+            color: var(--red);
+        }
+
+        .text-success {
+            color: var(--green);
+        }
+
+        /* 响应式布局 */
+        @media (max-width: 1200px) {
+            .comparison-metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .comparison-batch-cards {
+                flex-direction: column;
+            }
+
+            .comparison-vs {
+                width: 100%;
+                height: 40px;
+            }
+
+            .comparison-death-cards {
+                flex-direction: column;
+            }
+
+            .comparison-death-diff {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .comparison-metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1156,19 +1637,38 @@
         </div>
         <div class="header-right">
             <div class="form-group">
+                <label>分析模式</label>
+                <select id="analysisMode" onchange="toggleAnalysisMode()">
+                    <option value="historical" selected>历史趋势</option>
+                </select>
+            </div>
+            <!-- 横向对比模式：批次A选择 -->
+            <div class="form-group" id="comparisonBatchAGroup" style="display:none;">
+                <label>批次 A</label>
+                <select id="comparisonBatchA">
+                    {% for batch in batches %}
+                    <option value="{{ batch.batch_id }}">{{ batch.batch_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- 横向对比模式：批次B选择 -->
+            <div class="form-group" id="comparisonBatchBGroup" style="display:none;">
+                <label>批次 B</label>
+                <select id="comparisonBatchB">
+                    {% for batch in batches %}
+                    <option value="{{ batch.batch_id }}">{{ batch.batch_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn" id="comparisonBtn" onclick="loadComparisonReport()" style="display:none;background:var(--orange);">开始对比</button>
+            <!-- 历史分析模式：批次选择 -->
+            <div class="form-group" id="batchSelectGroup">
                 <label>批次</label>
                 <input id="batchSearch" class="search-input" type="text" placeholder="输入批次名称筛选" oninput="filterBatchOptions()" style="display:none !important; margin-right:8px;">
                 <select id="batchSelect" onchange="handleBatchChange()">
                     {% for batch in batches %}
                     <option value="{{ batch.batch_id }}">{{ batch.batch_name }}</option>
                     {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>分析模式</label>
-                <select id="analysisMode" onchange="toggleAnalysisMode()">
-                    <option value="daily">单日分析</option>
-                    <option value="historical" selected>历史趋势</option>
                 </select>
             </div>
             <div class="form-group" id="dateGroup" style="display:none;">
@@ -1226,17 +1726,38 @@
         const dateRangeGroup = document.getElementById('dateRangeGroup');
         const analyzeBtn = document.getElementById('analyzeBtn');
         const historicalBtn = document.getElementById('historicalBtn');
-        
+        const comparisonBtn = document.getElementById('comparisonBtn');
+        const comparisonBatchAGroup = document.getElementById('comparisonBatchAGroup');
+        const comparisonBatchBGroup = document.getElementById('comparisonBatchBGroup');
+        const batchSelectGroup = document.getElementById('batchSelectGroup');
+
         if (mode === 'historical') {
             dateGroup.style.display = 'none';
             dateRangeGroup.style.display = '';
             analyzeBtn.style.display = 'none';
             historicalBtn.style.display = '';
+            comparisonBtn.style.display = 'none';
+            comparisonBatchAGroup.style.display = 'none';
+            comparisonBatchBGroup.style.display = 'none';
+            batchSelectGroup.style.display = '';
+        } else if (mode === 'comparison') {
+            dateGroup.style.display = 'none';
+            dateRangeGroup.style.display = 'none';
+            analyzeBtn.style.display = 'none';
+            historicalBtn.style.display = 'none';
+            comparisonBtn.style.display = '';
+            comparisonBatchAGroup.style.display = '';
+            comparisonBatchBGroup.style.display = '';
+            batchSelectGroup.style.display = 'none';
         } else {
             dateGroup.style.display = '';
             dateRangeGroup.style.display = 'none';
             analyzeBtn.style.display = '';
             historicalBtn.style.display = 'none';
+            comparisonBtn.style.display = 'none';
+            comparisonBatchAGroup.style.display = 'none';
+            comparisonBatchBGroup.style.display = 'none';
+            batchSelectGroup.style.display = '';
         }
     }
 
@@ -1390,7 +1911,7 @@
     function updateProgress(percent, text) {
         const progressFill = document.getElementById('progressFill');
         const loadingStatus = document.getElementById('loadingStatus');
-        
+
         if (progressFill) {
             progressFill.style.width = `${percent}%`;
         }
@@ -1398,7 +1919,1311 @@
             loadingStatus.textContent = text;
         }
     }
-    
+
+    // ========== 横向对比模式 ==========
+
+    // 横向对比数据缓存
+    let comparisonCache = {
+        dataA: null,
+        dataB: null,
+        batchIdA: null,
+        batchIdB: null
+    };
+
+    // 横向对比阶段筛选
+    let comparisonStageFilter = 'all'; // 'all', 'baoyu', 'yufei'
+
+    /**
+     * localStorage 缓存策略
+     * 1. 缓存键格式: historical_report_{batch_id}
+     * 2. 缓存数据结构: { data: {...}, timestamp: number }
+     * 3. 缓存有效期: 30分钟
+     * 4. 读取优先级: localStorage -> API
+     */
+    function getHistoricalReportCacheKey(batchId) {
+        return `historical_report_${batchId}`;
+    }
+
+    function getHistoricalReportFromCache(batchId) {
+        try {
+            const cacheKey = getHistoricalReportCacheKey(batchId);
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                const { data, timestamp } = JSON.parse(cached);
+                const cacheAge = Date.now() - timestamp;
+                const CACHE_DURATION = 30 * 60 * 1000; // 30分钟
+                if (cacheAge < CACHE_DURATION) {
+                    console.log(`[缓存命中] 批次 ${batchId}，缓存年龄: ${Math.round(cacheAge / 1000)}秒`);
+                    return data;
+                } else {
+                    console.log(`[缓存过期] 批次 ${batchId}，缓存年龄: ${Math.round(cacheAge / 1000)}秒`);
+                    localStorage.removeItem(cacheKey);
+                }
+            }
+        } catch (e) {
+            console.warn('[缓存读取失败]', e);
+        }
+        return null;
+    }
+
+    function setHistoricalReportToCache(batchId, data) {
+        try {
+            const cacheKey = getHistoricalReportCacheKey(batchId);
+            const cacheData = {
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            console.log(`[缓存写入] 批次 ${batchId}`);
+        } catch (e) {
+            console.warn('[缓存写入失败]', e);
+        }
+    }
+
+    async function loadComparisonReport() {
+        const batchIdA = document.getElementById('comparisonBatchA').value;
+        const batchIdB = document.getElementById('comparisonBatchB').value;
+
+        if (batchIdA === batchIdB) {
+            alert('请选择两个不同的批次进行对比');
+            return;
+        }
+
+        const reportContentEl = document.getElementById('reportContent');
+        reportContentEl.innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">
+                    <div style="margin-bottom: 12px;">正在加载横向对比数据...</div>
+                    <div id="comparisonLoadingStatus" style="font-size: 12px; color: var(--text-muted);">正在读取批次A数据...</div>
+                    <div class="progress-bar" style="margin-top: 8px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+                        <div id="comparisonProgressFill" style="width: 0%; height: 100%; background: var(--orange); transition: width 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        try {
+            // 尝试从缓存读取批次A数据
+            let dataA = getHistoricalReportFromCache(batchIdA);
+            if (!dataA) {
+                document.getElementById('comparisonLoadingStatus').textContent = '正在从API获取批次A数据...';
+                const respA = await fetch(`/api/historical-report?batch_id=${batchIdA}`);
+                const resultA = await respA.json();
+                if (!resultA.success) throw new Error('批次A数据加载失败');
+                dataA = resultA.data;
+                setHistoricalReportToCache(batchIdA, dataA);
+            }
+            document.getElementById('comparisonProgressFill').style.width = '50%';
+            document.getElementById('comparisonLoadingStatus').textContent = '批次A加载完成，正在加载批次B...';
+
+            // 尝试从缓存读取批次B数据
+            let dataB = getHistoricalReportFromCache(batchIdB);
+            if (!dataB) {
+                document.getElementById('comparisonLoadingStatus').textContent = '正在从API获取批次B数据...';
+                const respB = await fetch(`/api/historical-report?batch_id=${batchIdB}`);
+                const resultB = await respB.json();
+                if (!resultB.success) throw new Error('批次B数据加载失败');
+                dataB = resultB.data;
+                setHistoricalReportToCache(batchIdB, dataB);
+            }
+            document.getElementById('comparisonProgressFill').style.width = '100%';
+            document.getElementById('comparisonLoadingStatus').textContent = '加载完成！';
+
+            // 更新缓存状态
+            comparisonCache = {
+                dataA: dataA,
+                dataB: dataB,
+                batchIdA: batchIdA,
+                batchIdB: batchIdB
+            };
+
+            // 渲染对比报告
+            renderComparisonReport(dataA, dataB);
+
+        } catch (e) {
+            reportContentEl.innerHTML = `<div class="error-box">加载失败: ${e.message}</div>`;
+        }
+    }
+
+    function renderComparisonReport(dataA, dataB) {
+        const batchInfoA = dataA.batch_info || {};
+        const batchInfoB = dataB.batch_info || {};
+        const dateRangeA = dataA.date_range || {};
+        const dateRangeB = dataB.date_range || {};
+        const periodStatsA = dataA.period_statistics || {};
+        const periodStatsB = dataB.period_statistics || {};
+        const deathAnalysisA = dataA.death_analysis || {};
+        const deathAnalysisB = dataB.death_analysis || {};
+        const trendDataA = dataA.trend_data || {};
+        const trendDataB = dataB.trend_data || {};
+        const unitEvaluationA = dataA.unit_evaluation || {};
+        const unitEvaluationB = dataB.unit_evaluation || {};
+        const unitTypesA = batchInfoA.unit_types || {};
+        const unitTypesB = batchInfoB.unit_types || {};
+
+        // 获取各批次的单元列表并按类型分组
+        const unitsA = (batchInfoA.units || []).map(u => ({
+            unit: u,
+            type: (unitTypesA[u] || '').toLowerCase()
+        }));
+        const unitsB = (batchInfoB.units || []).map(u => ({
+            unit: u,
+            type: (unitTypesB[u] || '').toLowerCase()
+        }));
+
+        const baoyuUnitsA = unitsA.filter(u => u.type.startsWith('baoyu')).sort((a, b) => a.unit.localeCompare(b.unit, undefined, { numeric: true }));
+        const baoyuUnitsB = unitsB.filter(u => u.type.startsWith('baoyu')).sort((a, b) => a.unit.localeCompare(b.unit, undefined, { numeric: true }));
+        const yufeiUnitsA = unitsA.filter(u => u.type.startsWith('yufei')).sort((a, b) => a.unit.localeCompare(b.unit, undefined, { numeric: true }));
+        const yufeiUnitsB = unitsB.filter(u => u.type.startsWith('yufei')).sort((a, b) => a.unit.localeCompare(b.unit, undefined, { numeric: true }));
+
+        let html = '';
+
+        // === 对比模式顶部Tab导航 ===
+        html += `<nav class="nav-tabs" id="comparisonNav">
+            <button class="nav-tab active" data-tab="comp-overview">批次概览</button>
+            <button class="nav-tab" data-tab="comp-units">单元对比</button>
+            <button class="nav-tab" data-tab="comp-trend">趋势对比</button>
+            <button class="nav-tab" data-tab="comp-daily">每日汇总</button>
+            <button class="nav-tab" data-tab="comp-death">死亡分析</button>
+        </nav>`;
+
+        // === Tab: 批次概览对比 ===
+        html += `<div class="tab-content active" id="tab-comp-overview">`;
+        html += renderComparisonOverview(dataA, dataB);
+        html += `</div>`;
+
+        // === Tab: 单元对比 ===
+        html += `<div class="tab-content" id="tab-comp-units">`;
+        html += renderComparisonUnits(dataA, dataB);
+        html += `</div>`;
+
+        // === Tab: 趋势对比 ===
+        html += `<div class="tab-content" id="tab-comp-trend">`;
+        html += renderComparisonTrend(dataA, dataB);
+        html += `</div>`;
+
+        // === Tab: 每日汇总 ===
+        html += `<div class="tab-content" id="tab-comp-daily">`;
+        html += renderComparisonDaily(dataA, dataB);
+        html += `</div>`;
+
+        // === Tab: 死亡分析 ===
+        html += `<div class="tab-content" id="tab-comp-death">`;
+        html += renderComparisonDeath(dataA, dataB);
+        html += `</div>`;
+
+        document.getElementById('reportContent').innerHTML = html;
+
+        // 绑定Tab切换事件
+        const navContainer = document.getElementById('comparisonNav');
+        if (navContainer) {
+            navContainer.addEventListener('click', function(e) {
+                const tab = e.target.closest('.nav-tab');
+                if (!tab) return;
+
+                navContainer.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                const targetId = 'tab-' + tab.getAttribute('data-tab');
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) targetEl.classList.add('active');
+            });
+        }
+
+        // 初始化趋势对比图表
+        setTimeout(() => {
+            initComparisonTrendCharts(dataA, dataB);
+        }, 100);
+    }
+
+    // 渲染批次概览对比
+    function renderComparisonOverview(dataA, dataB) {
+        const batchInfoA = dataA.batch_info || {};
+        const batchInfoB = dataB.batch_info || {};
+        const periodStatsA = dataA.period_statistics || {};
+        const periodStatsB = dataB.period_statistics || {};
+        const deathAnalysisA = dataA.death_analysis || {};
+        const deathAnalysisB = dataB.death_analysis || {};
+
+        const tempStatsA = periodStatsA.temperature || {};
+        const tempStatsB = periodStatsB.temperature || {};
+        const humiStatsA = periodStatsA.humidity || {};
+        const humiStatsB = periodStatsB.humidity || {};
+        const co2StatsA = periodStatsA.co2 || {};
+        const co2StatsB = periodStatsB.co2 || {};
+        const pressureStatsA = periodStatsA.pressure || {};
+        const pressureStatsB = periodStatsB.pressure || {};
+
+        const dateRangeA = dataA.date_range || {};
+        const dateRangeB = dataB.date_range || {};
+
+        const batchNameA = batchInfoA.batch_name || batchInfoA.batch_id || '批次A';
+        const batchNameB = batchInfoB.batch_name || batchInfoB.batch_id || '批次B';
+
+        const feedRatioA = batchInfoA.feed_ratio_130kg;
+        const feedRatioB = batchInfoB.feed_ratio_130kg;
+        const qualifiedRateA = batchInfoA.qualified_rate;
+        const qualifiedRateB = batchInfoB.qualified_rate;
+        const totalDeathsA = deathAnalysisA.total_deaths || 0;
+        const totalDeathsB = deathAnalysisB.total_deaths || 0;
+        const mortalityRateA = deathAnalysisA.mortality_rate || 0;
+        const mortalityRateB = deathAnalysisB.mortality_rate || 0;
+
+        function getBetterColor(valA, valB, higherIsBetter) {
+            if (valA === null || valA === undefined || valB === null || valB === undefined) return { colorA: '', colorB: '' };
+            if (higherIsBetter) {
+                return { colorA: valA > valB ? 'color:var(--green);font-weight:700;' : valA < valB ? 'color:var(--red);' : '', colorB: valB > valA ? 'color:var(--green);font-weight:700;' : valB < valA ? 'color:var(--red);' : '' };
+            } else {
+                return { colorA: valA < valB ? 'color:var(--green);font-weight:700;' : valA > valB ? 'color:var(--red);' : '', colorB: valB < valA ? 'color:var(--green);font-weight:700;' : valB > valA ? 'color:var(--red);' : '' };
+            }
+        }
+
+        const feedRatioColors = getBetterColor(feedRatioA, feedRatioB, false);
+        const qualifiedRateColors = getBetterColor(qualifiedRateA, qualifiedRateB, true);
+        const totalDeathsColors = getBetterColor(totalDeathsA, totalDeathsB, false);
+        const mortalityRateColors = getBetterColor(mortalityRateA, mortalityRateB, false);
+
+        html = '';
+
+        html += `<section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar orange"></span>批次概览对比</div>
+            </div>
+            <div class="comparison-batch-cards">
+                <div class="comparison-batch-card batch-a">
+                    <div class="comparison-batch-header">
+                        <span class="comparison-batch-badge batch-a-badge">A</span>
+                        <span class="comparison-batch-name">${batchNameA}</span>
+                    </div>
+                    <div class="comparison-batch-info">
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">场区</span>
+                            <span class="comparison-info-value">${batchInfoA.farm_name || '-'}</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">进苗日期</span>
+                            <span class="comparison-info-value">${batchInfoA.entry_date || '-'}</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">分析天数</span>
+                            <span class="comparison-info-value">${dateRangeA.total_days || 0} 天</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">日期范围</span>
+                            <span class="comparison-info-value">${dateRangeA.start_date || ''} ~ ${dateRangeA.end_date || ''}</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">饲养数量</span>
+                            <span class="comparison-info-value">${batchInfoA.feeding_count || '-'} 头</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-vs">VS</div>
+                <div class="comparison-batch-card batch-b">
+                    <div class="comparison-batch-header">
+                        <span class="comparison-batch-badge batch-b-badge">B</span>
+                        <span class="comparison-batch-name">${batchNameB}</span>
+                    </div>
+                    <div class="comparison-batch-info">
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">场区</span>
+                            <span class="comparison-info-value">${batchInfoB.farm_name || '-'}</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">进苗日期</span>
+                            <span class="comparison-info-value">${batchInfoB.entry_date || '-'}</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">分析天数</span>
+                            <span class="comparison-info-value">${dateRangeB.total_days || 0} 天</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">日期范围</span>
+                            <span class="comparison-info-value">${dateRangeB.start_date || ''} ~ ${dateRangeB.end_date || ''}</span>
+                        </div>
+                        <div class="comparison-info-row">
+                            <span class="comparison-info-label">饲养数量</span>
+                            <span class="comparison-info-value">${batchInfoB.feeding_count || '-'} 头</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>`;
+
+        html += `<section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar purple"></span>核心指标对比</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+                <div class="card" style="padding:12px;text-align:center;">
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">还原130kg料肉比</div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${feedRatioColors.colorA}">${feedRatioA !== null && feedRatioA !== undefined ? feedRatioA : '-'}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameA}</div>
+                        </div>
+                        <div style="font-size:14px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${feedRatioColors.colorB}">${feedRatioB !== null && feedRatioB !== undefined ? feedRatioB : '-'}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameB}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding:12px;text-align:center;">
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">正品出栏率</div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${qualifiedRateColors.colorA}">${qualifiedRateA !== null && qualifiedRateA !== undefined ? qualifiedRateA + '%' : '-'}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameA}</div>
+                        </div>
+                        <div style="font-size:14px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${qualifiedRateColors.colorB}">${qualifiedRateB !== null && qualifiedRateB !== undefined ? qualifiedRateB + '%' : '-'}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameB}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding:12px;text-align:center;">
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">累计死亡</div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${totalDeathsColors.colorA}">${totalDeathsA}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameA}</div>
+                        </div>
+                        <div style="font-size:14px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${totalDeathsColors.colorB}">${totalDeathsB}</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameB}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding:12px;text-align:center;">
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">死亡率</div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${mortalityRateColors.colorA}">${mortalityRateA}%</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameA}</div>
+                        </div>
+                        <div style="font-size:14px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="flex:1;">
+                            <div style="font-size:20px;font-weight:700;${mortalityRateColors.colorB}">${mortalityRateB}%</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">${batchNameB}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>`;
+
+        const tempRateA = tempStatsA.compliant_rate ?? null;
+        const tempRateB = tempStatsB.compliant_rate ?? null;
+        const tempStabilityA = tempStatsA.std ?? null;
+        const tempStabilityB = tempStatsB.std ?? null;
+
+        const humiRateA = humiStatsA.compliant_rate ?? null;
+        const humiRateB = humiStatsB.compliant_rate ?? null;
+
+        const co2RateA = co2StatsA.compliant_rate ?? null;
+        const co2RateB = co2StatsB.compliant_rate ?? null;
+
+        const pressureRateA = pressureStatsA.compliant_rate ?? null;
+        const pressureRateB = pressureStatsB.compliant_rate ?? null;
+
+        const tempRateColors = getBetterColor(tempRateA, tempRateB, true);
+        const humiRateColors = getBetterColor(humiRateA, humiRateB, true);
+        const co2RateColors = getBetterColor(co2RateA, co2RateB, true);
+        const pressureRateColors = getBetterColor(pressureRateA, pressureRateB, true);
+
+        function formatStability(val) {
+            if (val === null || val === undefined) return '-';
+            if (val > 1) return val.toFixed(1);
+            return (val * 100).toFixed(1);
+        }
+
+        function formatRate(val) {
+            if (val === null || val === undefined) return '-';
+            return val + '%';
+        }
+
+        html += `<section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar green"></span>环控指标周期对比</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+                <div class="card" style="padding:16px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <span style="font-size:20px;">🌡️</span>
+                        <span style="font-weight:600;">温度达标率</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:12px 0;">
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${tempRateColors.colorA}">${tempRateA !== null ? tempRateA : '-'}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameA}</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">稳定性: ${formatStability(tempStabilityA)}</div>
+                        </div>
+                        <div style="font-size:16px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${tempRateColors.colorB}">${tempRateB !== null ? tempRateB : '-'}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameB}</div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">稳定性: ${formatStability(tempStabilityB)}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding:16px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <span style="font-size:20px;">💧</span>
+                        <span style="font-weight:600;">湿度达标率</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:12px 0;">
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${humiRateColors.colorA}">${formatRate(humiRateA)}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameA}</div>
+                        </div>
+                        <div style="font-size:16px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${humiRateColors.colorB}">${formatRate(humiRateB)}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameB}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding:16px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <span style="font-size:20px;">🌬️</span>
+                        <span style="font-weight:600;">CO2达标率</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:12px 0;">
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${co2RateColors.colorA}">${formatRate(co2RateA)}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameA}</div>
+                        </div>
+                        <div style="font-size:16px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${co2RateColors.colorB}">${formatRate(co2RateB)}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameB}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="padding:16px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <span style="font-size:20px;">🔄</span>
+                        <span style="font-weight:600;">压差达标率</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:24px;padding:12px 0;">
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${pressureRateColors.colorA}">${formatRate(pressureRateA)}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameA}</div>
+                        </div>
+                        <div style="font-size:16px;color:var(--text-muted);font-weight:600;">VS</div>
+                        <div style="text-align:center;flex:1;">
+                            <div style="font-size:28px;font-weight:700;${pressureRateColors.colorB}">${formatRate(pressureRateB)}</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">${batchNameB}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>`;
+
+        return html;
+    }
+
+    // 渲染单元对比
+    function renderComparisonUnits(dataA, dataB) {
+        const batchInfoA = dataA.batch_info || {};
+        const batchInfoB = dataB.batch_info || {};
+        const unitTypesA = batchInfoA.unit_types || {};
+        const unitTypesB = batchInfoB.unit_types || {};
+        const unitComparisonA = dataA.unit_comparison || {};
+        const unitComparisonB = dataB.unit_comparison || {};
+        const unitsObjA = unitComparisonA.units || {};
+        const unitsObjB = unitComparisonB.units || {};
+
+        const getUnitsByType = (batchInfo, unitTypes) => {
+            const units = batchInfo.units || [];
+            const byType = { baoyu: [], yufei: [] };
+            units.forEach(u => {
+                const type = (unitTypes[u] || '').toLowerCase();
+                if (type.startsWith('baoyu')) byType.baoyu.push(u);
+                else if (type.startsWith('yufei')) byType.yufei.push(u);
+            });
+            Object.keys(byType).forEach(k => byType[k].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })));
+            return byType;
+        };
+
+        const unitsByTypeA = getUnitsByType(batchInfoA, unitTypesA);
+        const unitsByTypeB = getUnitsByType(batchInfoB, unitTypesB);
+
+        let html = `<section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar purple"></span>单元分项对比</div>
+                <div class="comparison-stage-filter">
+                    <button class="stage-filter-btn ${comparisonStageFilter === 'all' ? 'active' : ''}" onclick="setComparisonStage('all')">全部</button>
+                    <button class="stage-filter-btn ${comparisonStageFilter === 'baoyu' ? 'active' : ''}" onclick="setComparisonStage('baoyu')">保育</button>
+                    <button class="stage-filter-btn ${comparisonStageFilter === 'yufei' ? 'active' : ''}" onclick="setComparisonStage('yufei')">育肥</button>
+                </div>
+            </div>
+            <div class="comparison-units-section">`;
+
+        const showBaoyu = comparisonStageFilter === 'all' || comparisonStageFilter === 'baoyu';
+        const showYufei = comparisonStageFilter === 'all' || comparisonStageFilter === 'yufei';
+
+        function formatStability(val) {
+            if (val === null || val === undefined) return '-';
+            if (val > 1) return val.toFixed(1);
+            return (val * 100).toFixed(1);
+        }
+
+        const renderUnitPairTable = (title, unitsA, unitsB, unitsObjA, unitsObjB) => {
+            if (unitsA.length === 0 && unitsB.length === 0) return '';
+
+            const avg = arr => {
+                const valid = arr.filter(v => v !== null && v !== undefined);
+                return valid.length > 0 ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+            };
+
+            const getAllValues = (key, subKey) => {
+                const valsA = unitsA.map(u => unitsObjA[u]?.[key]?.[subKey] ?? null).filter(v => v !== null);
+                const valsB = unitsB.map(u => unitsObjB[u]?.[key]?.[subKey] ?? null).filter(v => v !== null);
+                return [...valsA, ...valsB];
+            };
+
+            const allTempRateA = unitsA.map(u => unitsObjA[u]?.temperature?.within_target_pct ?? null).filter(v => v !== null);
+            const allTempRateB = unitsB.map(u => unitsObjB[u]?.temperature?.within_target_pct ?? null).filter(v => v !== null);
+            const allTempStabilityA = unitsA.map(u => unitsObjA[u]?.temperature?.cv ?? null).filter(v => v !== null);
+            const allTempStabilityB = unitsB.map(u => unitsObjB[u]?.temperature?.cv ?? null).filter(v => v !== null);
+            const allPressureRateA = unitsA.map(u => unitsObjA[u]?.pressure?.within_target_pct ?? null).filter(v => v !== null);
+            const allPressureRateB = unitsB.map(u => unitsObjB[u]?.pressure?.within_target_pct ?? null).filter(v => v !== null);
+            const allCo2RateA = unitsA.map(u => unitsObjA[u]?.co2?.within_target_pct ?? null).filter(v => v !== null);
+            const allCo2RateB = unitsB.map(u => unitsObjB[u]?.co2?.within_target_pct ?? null).filter(v => v !== null);
+            const allHumiRateA = unitsA.map(u => unitsObjA[u]?.humidity?.within_target_pct ?? null).filter(v => v !== null);
+            const allHumiRateB = unitsB.map(u => unitsObjB[u]?.humidity?.within_target_pct ?? null).filter(v => v !== null);
+
+            const avgTempRateA = avg(allTempRateA);
+            const avgTempRateB = avg(allTempRateB);
+            const avgTempStabilityA = avg(allTempStabilityA);
+            const avgTempStabilityB = avg(allTempStabilityB);
+            const avgPressureRateA = avg(allPressureRateA);
+            const avgPressureRateB = avg(allPressureRateB);
+            const avgCo2RateA = avg(allCo2RateA);
+            const avgCo2RateB = avg(allCo2RateB);
+            const avgHumiRateA = avg(allHumiRateA);
+            const avgHumiRateB = avg(allHumiRateB);
+
+            const bestTempRate = Math.max(...[...allTempRateA, ...allTempRateB].filter(v => v !== null));
+            const worstTempRate = Math.min(...[...allTempRateA, ...allTempRateB].filter(v => v !== null));
+            const bestPressureRate = Math.max(...[...allPressureRateA, ...allPressureRateB].filter(v => v !== null));
+            const worstPressureRate = Math.min(...[...allPressureRateA, ...allPressureRateB].filter(v => v !== null));
+            const bestCo2Rate = Math.max(...[...allCo2RateA, ...allCo2RateB].filter(v => v !== null));
+            const worstCo2Rate = Math.min(...[...allCo2RateA, ...allCo2RateB].filter(v => v !== null));
+            const bestHumiRate = Math.max(...[...allHumiRateA, ...allHumiRateB].filter(v => v !== null));
+            const worstHumiRate = Math.min(...[...allHumiRateA, ...allHumiRateB].filter(v => v !== null));
+
+            let tableHtml = `<div class="comparison-units-group">
+                <div class="comparison-units-group-title">${title}</div>
+                <table class="data-table comparison-units-table">
+                    <thead>
+                        <tr>
+                            <th style="background:var(--green-bg);">${batchInfoA.batch_name?.substring(0, 8) || '批次A'}</th>
+                            <th style="background:var(--green-bg);">温度达标率</th>
+                            <th style="background:var(--green-bg);">温度稳定性</th>
+                            <th style="background:var(--green-bg);">压差达标率</th>
+                            <th style="background:var(--green-bg);">CO2达标率</th>
+                            <th style="background:var(--green-bg);">湿度达标率</th>
+                            <th style="border-left: 2px solid var(--border);background:var(--purple-bg);">VS</th>
+                            <th style="background:var(--orange-bg);">${batchInfoB.batch_name?.substring(0, 8) || '批次B'}</th>
+                            <th style="background:var(--orange-bg);">温度达标率</th>
+                            <th style="background:var(--orange-bg);">温度稳定性</th>
+                            <th style="background:var(--orange-bg);">压差达标率</th>
+                            <th style="background:var(--orange-bg);">CO2达标率</th>
+                            <th style="background:var(--orange-bg);">湿度达标率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background:var(--bg);font-weight:600;">
+                            <td style="font-weight:700;">平均达标率</td>
+                            <td>${avgTempRateA !== null ? avgTempRateA.toFixed(1) + '%' : '-'}</td>
+                            <td>${formatStability(avgTempStabilityA)}</td>
+                            <td>${avgPressureRateA !== null ? avgPressureRateA.toFixed(1) + '%' : '-'}</td>
+                            <td>${avgCo2RateA !== null ? avgCo2RateA.toFixed(1) + '%' : '-'}</td>
+                            <td>${avgHumiRateA !== null ? avgHumiRateA.toFixed(1) + '%' : '-'}</td>
+                            <td style="border-left: 2px solid var(--border);"></td>
+                            <td style="font-weight:700;">平均达标率</td>
+                            <td>${avgTempRateB !== null ? avgTempRateB.toFixed(1) + '%' : '-'}</td>
+                            <td>${formatStability(avgTempStabilityB)}</td>
+                            <td>${avgPressureRateB !== null ? avgPressureRateB.toFixed(1) + '%' : '-'}</td>
+                            <td>${avgCo2RateB !== null ? avgCo2RateB.toFixed(1) + '%' : '-'}</td>
+                            <td>${avgHumiRateB !== null ? avgHumiRateB.toFixed(1) + '%' : '-'}</td>
+                        </tr>
+                        <tr style="background:rgba(45,106,79,0.05);">
+                            <td style="font-weight:700;color:var(--green);">最佳</td>
+                            <td>${bestTempRate !== -Infinity ? bestTempRate + '%' : '-'}</td>
+                            <td>-</td>
+                            <td>${bestPressureRate !== -Infinity ? bestPressureRate + '%' : '-'}</td>
+                            <td>${bestCo2Rate !== -Infinity ? bestCo2Rate + '%' : '-'}</td>
+                            <td>${bestHumiRate !== -Infinity ? bestHumiRate + '%' : '-'}</td>
+                            <td style="border-left: 2px solid var(--border);"></td>
+                            <td style="font-weight:700;color:var(--green);">最佳</td>
+                            <td>${bestTempRate !== -Infinity ? bestTempRate + '%' : '-'}</td>
+                            <td>-</td>
+                            <td>${bestPressureRate !== -Infinity ? bestPressureRate + '%' : '-'}</td>
+                            <td>${bestCo2Rate !== -Infinity ? bestCo2Rate + '%' : '-'}</td>
+                            <td>${bestHumiRate !== -Infinity ? bestHumiRate + '%' : '-'}</td>
+                        </tr>
+                        <tr style="background:rgba(220,38,38,0.05);">
+                            <td style="font-weight:700;color:var(--red);">最差</td>
+                            <td>${worstTempRate !== Infinity ? worstTempRate + '%' : '-'}</td>
+                            <td>-</td>
+                            <td>${worstPressureRate !== Infinity ? worstPressureRate + '%' : '-'}</td>
+                            <td>${worstCo2Rate !== Infinity ? worstCo2Rate + '%' : '-'}</td>
+                            <td>${worstHumiRate !== Infinity ? worstHumiRate + '%' : '-'}</td>
+                            <td style="border-left: 2px solid var(--border);"></td>
+                            <td style="font-weight:700;color:var(--red);">最差</td>
+                            <td>${worstTempRate !== Infinity ? worstTempRate + '%' : '-'}</td>
+                            <td>-</td>
+                            <td>${worstPressureRate !== Infinity ? worstPressureRate + '%' : '-'}</td>
+                            <td>${worstCo2Rate !== Infinity ? worstCo2Rate + '%' : '-'}</td>
+                            <td>${worstHumiRate !== Infinity ? worstHumiRate + '%' : '-'}</td>
+                        </tr>`;
+
+            const maxPairs = Math.max(unitsA.length, unitsB.length);
+            for (let i = 0; i < maxPairs; i++) {
+                const unitA = unitsA[i] || null;
+                const unitB = unitsB[i] || null;
+                const unitDataA = unitA ? (unitsObjA[unitA] || {}) : null;
+                const unitDataB = unitB ? (unitsObjB[unitB] || {}) : null;
+
+                const tempRateA = unitDataA?.temperature?.within_target_pct ?? null;
+                const tempStabilityA = unitDataA?.temperature?.cv ?? null;
+                const pressureRateA = unitDataA?.pressure?.within_target_pct ?? null;
+                const co2RateA = unitDataA?.co2?.within_target_pct ?? null;
+                const humiRateA = unitDataA?.humidity?.within_target_pct ?? null;
+
+                const tempRateB = unitDataB?.temperature?.within_target_pct ?? null;
+                const tempStabilityB = unitDataB?.temperature?.cv ?? null;
+                const pressureRateB = unitDataB?.pressure?.within_target_pct ?? null;
+                const co2RateB = unitDataB?.co2?.within_target_pct ?? null;
+                const humiRateB = unitDataB?.humidity?.within_target_pct ?? null;
+
+                tableHtml += `<tr>
+                    <td style="font-weight:600;color:var(--green);">${unitA || '-'}</td>
+                    <td>${tempRateA !== null ? tempRateA + '%' : '-'}</td>
+                    <td>${formatStability(tempStabilityA)}</td>
+                    <td>${pressureRateA !== null ? pressureRateA + '%' : '-'}</td>
+                    <td>${co2RateA !== null ? co2RateA + '%' : '-'}</td>
+                    <td>${humiRateA !== null ? humiRateA + '%' : '-'}</td>
+                    <td style="border-left: 2px solid var(--border);text-align:center;font-weight:700;color:var(--text-muted);">VS</td>
+                    <td style="font-weight:600;color:var(--orange);">${unitB || '-'}</td>
+                    <td>${tempRateB !== null ? tempRateB + '%' : '-'}</td>
+                    <td>${formatStability(tempStabilityB)}</td>
+                    <td>${pressureRateB !== null ? pressureRateB + '%' : '-'}</td>
+                    <td>${co2RateB !== null ? co2RateB + '%' : '-'}</td>
+                    <td>${humiRateB !== null ? humiRateB + '%' : '-'}</td>
+                </tr>`;
+            }
+
+            tableHtml += `</tbody></table></div>`;
+            return tableHtml;
+        };
+
+        if (showBaoyu) {
+            html += renderUnitPairTable(
+                `保育单元 (${unitsByTypeA.baoyu.length} vs ${unitsByTypeB.baoyu.length})`,
+                unitsByTypeA.baoyu, unitsByTypeB.baoyu,
+                unitsObjA, unitsObjB
+            );
+        }
+
+        if (showYufei) {
+            html += renderUnitPairTable(
+                `育肥单元 (${unitsByTypeA.yufei.length} vs ${unitsByTypeB.yufei.length})`,
+                unitsByTypeA.yufei, unitsByTypeB.yufei,
+                unitsObjA, unitsObjB
+            );
+        }
+
+        html += `</div></section>`;
+        return html;
+    }
+
+    // 设置对比阶段筛选
+    function setComparisonStage(stage) {
+        comparisonStageFilter = stage;
+        if (comparisonCache.dataA && comparisonCache.dataB) {
+            const unitsTab = document.getElementById('tab-comp-units');
+            if (unitsTab) {
+                unitsTab.innerHTML = renderComparisonUnits(comparisonCache.dataA, comparisonCache.dataB);
+            }
+        }
+    }
+
+    // 渲染趋势对比
+    function renderComparisonTrend(dataA, dataB) {
+        const batchNameA = dataA.batch_info?.batch_name || dataA.batch_info?.batch_id || '批次A';
+        const batchNameB = dataB.batch_info?.batch_name || dataB.batch_info?.batch_id || '批次B';
+
+        return `<section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar blue"></span>趋势对比分析</div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="chart-tabs comparison-chart-tabs">
+                        <button class="chart-tab active" onclick="switchComparisonChart('temp', this)">温度趋势</button>
+                        <button class="chart-tab" onclick="switchComparisonChart('humi', this)">湿度趋势</button>
+                        <button class="chart-tab" onclick="switchComparisonChart('co2', this)">CO2趋势</button>
+                        <button class="chart-tab" onclick="switchComparisonChart('pressure', this)">压差趋势</button>
+                    </div>
+                    <div class="comparison-chart-legend">
+                        <span class="legend-item"><span class="legend-color batch-a-color"></span>${batchNameA}</span>
+                        <span class="legend-item"><span class="legend-color batch-b-color"></span>${batchNameB}</span>
+                    </div>
+                    <div class="chart-wrapper comparison-chart-wrapper">
+                        <canvas id="comparisonTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>`;
+    }
+
+    // 初始化趋势对比图表
+    let comparisonChart = null;
+    let currentComparisonChartType = 'temp';
+
+    function initComparisonTrendCharts(dataA, dataB) {
+        const ctx = document.getElementById('comparisonTrendChart');
+        if (!ctx) return;
+
+        const trendDataA = dataA.trend_data || {};
+        const trendDataB = dataB.trend_data || {};
+        const batchInfoA = dataA.batch_info || {};
+        const batchInfoB = dataB.batch_info || {};
+        const unitTypesA = batchInfoA.unit_types || {};
+        const unitTypesB = batchInfoB.unit_types || {};
+        const dailySummariesA = dataA.daily_summaries || [];
+        const dailySummariesB = dataB.daily_summaries || {};
+
+        const dateToDayAgeA = {};
+        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeA[d.date] = d.day_age; });
+        const dateToDayAgeB = {};
+        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeB[d.date] = d.day_age; });
+
+        const dayAgesA = [...new Set(Object.values(dateToDayAgeA))].sort((a, b) => a - b);
+        const dayAgesB = [...new Set(Object.values(dateToDayAgeB))].sort((a, b) => a - b);
+        const commonDayAges = [...new Set([...dayAgesA, ...dayAgesB])].sort((a, b) => a - b);
+
+        const dayAgeToDateA = {};
+        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateA[d.day_age] = d.date; });
+        const dayAgeToDateB = {};
+        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateB[d.day_age] = d.date; });
+
+        const batchNameA = dataA.batch_info?.batch_name || dataA.batch_info?.batch_id || '批次A';
+        const batchNameB = dataB.batch_info?.batch_name || dataB.batch_info?.batch_id || '批次B';
+
+        const unitsA = (batchInfoA.units || []).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        const unitsB = (batchInfoB.units || []).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+        const colorsA = [
+            'rgba(45, 106, 79, 1)',
+            'rgba(45, 106, 79, 0.7)',
+            'rgba(45, 106, 79, 0.5)',
+            'rgba(45, 106, 79, 0.3)'
+        ];
+        const colorsB = [
+            'rgba(224, 122, 47, 1)',
+            'rgba(224, 122, 47, 0.7)',
+            'rgba(224, 122, 47, 0.5)',
+            'rgba(224, 122, 47, 0.3)'
+        ];
+
+        function getUnitTrendData(trendData, dayAges, dayAgeToDate, type) {
+            let typeData = null;
+            switch (type) {
+                case 'temp': typeData = trendData.temperature || {}; break;
+                case 'humi': typeData = trendData.humidity || {}; break;
+                case 'co2': typeData = trendData.co2 || {}; break;
+                case 'pressure': typeData = trendData.pressure || {}; break;
+            }
+            if (!typeData || !typeData.units) return {};
+
+            const result = {};
+            Object.entries(typeData.units).forEach(([unit, values]) => {
+                const data = dayAges.map(da => {
+                    const date = dayAgeToDate[da];
+                    if (!date) return undefined;
+                    const trendDates = trendData.dates || [];
+                    const idx = trendDates.indexOf(date);
+                    return idx >= 0 ? values[idx] : undefined;
+                });
+                result[unit] = data;
+            });
+            return result;
+        }
+
+        const unitDataA = getUnitTrendData(trendDataA, commonDayAges, dayAgeToDateA, currentComparisonChartType);
+        const unitDataB = getUnitTrendData(trendDataB, commonDayAges, dayAgeToDateB, currentComparisonChartType);
+
+        const datasets = [];
+        let colorIdx = 0;
+
+        unitsA.forEach(unit => {
+            if (unitDataA[unit]) {
+                datasets.push({
+                    label: `${batchNameA} - ${unit}`,
+                    data: unitDataA[unit],
+                    borderColor: colorsA[colorIdx % colorsA.length],
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    spanGaps: false
+                });
+                colorIdx++;
+            }
+        });
+
+        colorIdx = 0;
+        unitsB.forEach(unit => {
+            if (unitDataB[unit]) {
+                datasets.push({
+                    label: `${batchNameB} - ${unit}`,
+                    data: unitDataB[unit],
+                    borderColor: colorsB[colorIdx % colorsB.length],
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    spanGaps: false
+                });
+                colorIdx++;
+            }
+        });
+
+        if (comparisonChart) {
+            comparisonChart.destroy();
+        }
+
+        const metricLabels = {
+            temp: { yLabel: '温度 (℃)' },
+            humi: { yLabel: '湿度 (%)' },
+            co2: { yLabel: 'CO2 (ppm)' },
+            pressure: { yLabel: '压差 (Pa)' }
+        };
+        const config = metricLabels[currentComparisonChartType] || metricLabels.temp;
+
+        comparisonChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: commonDayAges,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 20,
+                            padding: 10,
+                            font: { size: 10 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y !== null ? context.parsed.y.toFixed(1) : '-'}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxRotation: 45, minRotation: 45 },
+                        title: { display: true, text: '日龄 (天)' }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        title: { display: true, text: config.yLabel }
+                    }
+                }
+            }
+        });
+    }
+
+    function getTrendDataForChart(trendData, type, dates) {
+        if (!trendData) return { dates: [], values: [], batchName: '' };
+
+        let typeData = null;
+        switch (type) {
+            case 'temp':
+                typeData = trendData.temperature || {};
+                break;
+            case 'humi':
+                typeData = trendData.humidity || {};
+                break;
+            case 'co2':
+                typeData = trendData.co2 || {};
+                break;
+            case 'pressure':
+                typeData = trendData.pressure || {};
+                break;
+        }
+
+        if (!typeData) return { dates: [], values: [], batchName: '' };
+
+        const trendDates = trendData.dates || [];
+        let sourceData = [];
+
+        if (typeData.units && typeof typeData.units === 'object') {
+            const unitKeys = Object.keys(typeData.units);
+            if (unitKeys.length > 0) {
+                const firstUnitData = typeData.units[unitKeys[0]] || [];
+                sourceData = firstUnitData;
+            }
+        } else if (Array.isArray(typeData)) {
+            sourceData = typeData;
+        }
+
+        const values = dates.map(date => {
+            const index = trendDates.indexOf(date);
+            return index >= 0 ? sourceData[index] : null;
+        });
+
+        return { dates, values, batchName: '' };
+    }
+
+    function getComparisonChartOptions(type) {
+        const metricLabels = {
+            temp: { yLabel: '温度 (℃)', title: '温度' },
+            humi: { yLabel: '湿度 (%)', title: '湿度' },
+            co2: { yLabel: 'CO2 (ppm)', title: 'CO2' },
+            pressure: { yLabel: '压差 (Pa)', title: '压差' }
+        };
+
+        const config = metricLabels[type] || metricLabels.temp;
+
+        const baseOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y !== null ? context.parsed.y.toFixed(1) : '-'} ${config.yLabel.split(' ')[1]}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        maxTicksLimit: 15
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    },
+                    title: {
+                        display: true,
+                        text: config.yLabel
+                    }
+                }
+            }
+        };
+
+        return baseOptions;
+    }
+
+    function switchComparisonChart(type, btn) {
+        currentComparisonChartType = type;
+
+        // 更新按钮状态
+        document.querySelectorAll('.comparison-chart-tabs .chart-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // 重新渲染图表
+        if (comparisonCache.dataA && comparisonCache.dataB) {
+            initComparisonTrendCharts(comparisonCache.dataA, comparisonCache.dataB);
+        }
+    }
+
+    // 渲染每日汇总对比
+    function renderComparisonDaily(dataA, dataB) {
+        const dailySummariesA = dataA.daily_summaries || [];
+        const dailySummariesB = dataB.daily_summaries || [];
+        const batchInfoA = dataA.batch_info || {};
+        const batchInfoB = dataB.batch_info || {};
+        const unitTypesA = batchInfoA.unit_types || {};
+        const unitTypesB = batchInfoB.unit_types || {};
+
+        const dateToDayAgeA = {};
+        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeA[d.date] = d.day_age; });
+        const dateToDayAgeB = {};
+        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeB[d.date] = d.day_age; });
+
+        const dayAgesA = [...new Set(Object.values(dateToDayAgeA))].sort((a, b) => a - b);
+        const dayAgesB = [...new Set(Object.values(dateToDayAgeB))].sort((a, b) => a - b);
+        const commonDayAges = [...new Set([...dayAgesA, ...dayAgesB])].sort((a, b) => a - b);
+
+        if (commonDayAges.length === 0) {
+            return `<section class="section"><div class="error-box">两个批次没有日龄数据，无法进行每日汇总对比</div></section>`;
+        }
+
+        const dayAgeToDateA = {};
+        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateA[d.day_age] = d.date; });
+        const dayAgeToDateB = {};
+        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateB[d.day_age] = d.date; });
+
+        const batchNameA = dataA.batch_info?.batch_name || dataA.batch_info?.batch_id || '批次A';
+        const batchNameB = dataB.batch_info?.batch_name || dataB.batch_info?.batch_id || '批次B';
+
+        const allUnitsA = Object.keys(dailySummariesA[0]?.unit_details || {});
+        const allUnitsB = Object.keys(dailySummariesB[0]?.unit_details || {});
+
+        const unitsTypeA = { baoyu: [], yufei: [] };
+        allUnitsA.forEach(u => {
+            const type = (unitTypesA[u] || '').toLowerCase();
+            if (type.startsWith('baoyu')) unitsTypeA.baoyu.push(u);
+            else if (type.startsWith('yufei')) unitsTypeA.yufei.push(u);
+        });
+        unitsTypeA.baoyu.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        unitsTypeA.yufei.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+        const unitsTypeB = { baoyu: [], yufei: [] };
+        allUnitsB.forEach(u => {
+            const type = (unitTypesB[u] || '').toLowerCase();
+            if (type.startsWith('baoyu')) unitsTypeB.baoyu.push(u);
+            else if (type.startsWith('yufei')) unitsTypeB.yufei.push(u);
+        });
+        unitsTypeB.baoyu.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        unitsTypeB.yufei.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+        function getDayAgeSummary(dailySummaries, dayAge) {
+            const date = dayAgeToDateA[dayAge] || dayAgeToDateB[dayAge];
+            if (!date) return null;
+            return dailySummaries.find(d => d.date === date) || null;
+        }
+
+        function getComplianceColor(value) {
+            if (value === null || value === undefined) return { bg: 'var(--bg)', color: 'var(--text-muted)' };
+            if (value >= 90) return { bg: 'var(--green-bg)', color: 'var(--green)' };
+            if (value >= 70) return { bg: 'var(--orange-bg)', color: 'var(--orange)' };
+            return { bg: 'rgba(220,38,38,0.1)', color: 'var(--red)' };
+        }
+
+        const metrics = [
+            { key: 'temperature', label: '温度' },
+            { key: 'humidity', label: '湿度' },
+            { key: 'co2', label: 'CO2' },
+            { key: 'pressure', label: '压差' }
+        ];
+
+        let html = `<section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar green"></span>每日汇总对比</div>
+            </div>`;
+
+        const renderTypeSection = (title, unitsA, unitsB, batchAName, batchBName) => {
+            if (unitsA.length === 0 && unitsB.length === 0) return '';
+
+            const totalCols = (unitsA.length + unitsB.length) * 4;
+
+            let sectionHtml = `<div style="margin-bottom:24px;">
+                <div style="font-weight:600;font-size:14px;margin-bottom:12px;color:var(--text-secondary);padding-bottom:8px;border-bottom:2px solid var(--border);">${title}</div>
+                <div class="card">
+                    <div class="card-body" style="padding:0;overflow-x:auto;">
+                        <table class="data-table" style="table-layout:fixed;width:${80 + totalCols * 80}px;border-collapse:collapse;">
+                            <thead style="position:sticky;top:0;z-index:30;background:var(--bg);box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                                <tr>
+                                    <th style="position:sticky;left:0;z-index:35;background:var(--bg);box-shadow:2px 0 5px rgba(0,0,0,0.1);width:60px;padding:8px 4px;border:1px solid var(--border);" rowspan="2">日龄</th>`;
+
+            sectionHtml += `<th colspan="${unitsA.length * 4}" style="text-align:center;background:var(--green-bg);border-left:2px solid var(--border);padding:8px 4px;border:1px solid var(--border);">${batchAName}（${unitsA.map(u => `${u}-四个指标`).join('、')}）</th>`;
+            sectionHtml += `<th colspan="${unitsB.length * 4}" style="text-align:center;background:var(--orange-bg);border-left:2px solid var(--border);padding:8px 4px;border:1px solid var(--border);">${batchBName}（${unitsB.map(u => `${u}-四个指标`).join('、')}）</th>`;
+            sectionHtml += `</tr><tr>`;
+
+            unitsA.forEach(unit => {
+                metrics.forEach(m => {
+                    sectionHtml += `<th style="text-align:center;background:var(--green-bg);border-left:1px solid var(--border);width:80px;padding:4px 2px;border:1px solid var(--border);font-size:10px;">${unit}-${m.label}</th>`;
+                });
+            });
+            unitsB.forEach(unit => {
+                metrics.forEach(m => {
+                    sectionHtml += `<th style="text-align:center;background:var(--orange-bg);border-left:1px solid var(--border);width:80px;padding:4px 2px;border:1px solid var(--border);font-size:10px;">${unit}-${m.label}</th>`;
+                });
+            });
+            sectionHtml += `</tr></thead><tbody>`;
+
+            commonDayAges.forEach(dayAge => {
+                const summaryA = getDayAgeSummary(dailySummariesA, dayAge);
+                const summaryB = getDayAgeSummary(dailySummariesB, dayAge);
+
+                sectionHtml += `<tr>
+                    <td style="font-weight:600;position:sticky;left:0;z-index:10;background:var(--bg);box-shadow:2px 0 5px rgba(0,0,0,0.1);padding:6px 4px;border:1px solid var(--border);">${dayAge}天</td>`;
+
+                unitsA.forEach(unit => {
+                    metrics.forEach(m => {
+                        const unitData = summaryA?.unit_details?.[unit]?.[m.key] || {};
+                        const val = unitData.within_target_pct ?? null;
+                        const colors = getComplianceColor(val);
+                        sectionHtml += `<td style="text-align:center;padding:4px 2px;border:1px solid var(--border);background:${colors.bg};color:${colors.color};font-weight:600;font-size:11px;">${val !== null ? val + '%' : '-'}</td>`;
+                    });
+                });
+                unitsB.forEach(unit => {
+                    metrics.forEach(m => {
+                        const unitData = summaryB?.unit_details?.[unit]?.[m.key] || {};
+                        const val = unitData.within_target_pct ?? null;
+                        const colors = getComplianceColor(val);
+                        sectionHtml += `<td style="text-align:center;padding:4px 2px;border:1px solid var(--border);background:${colors.bg};color:${colors.color};font-weight:600;font-size:11px;">${val !== null ? val + '%' : '-'}</td>`;
+                    });
+                });
+
+                sectionHtml += `</tr>`;
+            });
+
+            sectionHtml += `</tbody></table></div></div>`;
+            return sectionHtml;
+        };
+
+        if (unitsTypeA.baoyu.length > 0 || unitsTypeB.baoyu.length > 0) {
+            html += renderTypeSection(`保育单元`, unitsTypeA.baoyu, unitsTypeB.baoyu, batchNameA, batchNameB);
+        }
+        if (unitsTypeA.yufei.length > 0 || unitsTypeB.yufei.length > 0) {
+            html += renderTypeSection(`育肥单元`, unitsTypeA.yufei, unitsTypeB.yufei, batchNameA, batchNameB);
+        }
+
+        html += `</section>`;
+        return html;
+    }
+
+    // 渲染死亡分析对比
+    function renderComparisonDeath(dataA, dataB) {
+        const deathAnalysisA = dataA.death_analysis || {};
+        const deathAnalysisB = dataB.death_analysis || {};
+        const batchNameA = dataA.batch_info?.batch_name || dataA.batch_info?.batch_id || '批次A';
+        const batchNameB = dataB.batch_info?.batch_name || dataB.batch_info?.batch_id || '批次B';
+
+        let html = `<section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar red"></span>死亡分析对比</div>
+            </div>
+            <div class="comparison-death-cards">
+                <div class="comparison-death-card batch-a">
+                    <div class="comparison-death-header">
+                        <span class="comparison-batch-badge batch-a-badge">A</span>
+                        <span class="comparison-batch-name">${batchNameA}</span>
+                    </div>
+                    <div class="comparison-death-stats">
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value ${deathAnalysisA.total_deaths > 0 ? 'text-danger' : ''}">${deathAnalysisA.total_deaths || 0}</div>
+                            <div class="comparison-death-stat-label">累计死亡(头)</div>
+                        </div>
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value ${deathAnalysisA.mortality_rate > 5 ? 'text-danger' : ''}">${deathAnalysisA.mortality_rate || 0}%</div>
+                            <div class="comparison-death-stat-label">死亡率</div>
+                        </div>
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value">${deathAnalysisA.peak_death_date || '-'}</div>
+                            <div class="comparison-death-stat-label">死亡峰值日期</div>
+                        </div>
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value">${deathAnalysisA.peak_death_count || 0}</div>
+                            <div class="comparison-death-stat-label">峰值死亡(头)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comparison-death-diff">
+                    <div class="comparison-death-diff-item">
+                        <span class="diff-label">死亡差异</span>
+                        <span class="diff-value ${deathAnalysisA.total_deaths - deathAnalysisB.total_deaths > 0 ? 'text-danger' : 'text-success'}">${deathAnalysisA.total_deaths - deathAnalysisB.total_deaths > 0 ? '+' : ''}${deathAnalysisA.total_deaths - deathAnalysisB.total_deaths} 头</span>
+                    </div>
+                    <div class="comparison-death-diff-item">
+                        <span class="diff-label">死亡率差异</span>
+                        <span class="diff-value ${deathAnalysisA.mortality_rate - deathAnalysisB.mortality_rate > 0 ? 'text-danger' : 'text-success'}">${deathAnalysisA.mortality_rate - deathAnalysisB.mortality_rate > 0 ? '+' : ''}${(deathAnalysisA.mortality_rate - deathAnalysisB.mortality_rate).toFixed(2)}%</span>
+                    </div>
+                </div>
+                <div class="comparison-death-card batch-b">
+                    <div class="comparison-death-header">
+                        <span class="comparison-batch-badge batch-b-badge">B</span>
+                        <span class="comparison-batch-name">${batchNameB}</span>
+                    </div>
+                    <div class="comparison-death-stats">
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value ${deathAnalysisB.total_deaths > 0 ? 'text-danger' : ''}">${deathAnalysisB.total_deaths || 0}</div>
+                            <div class="comparison-death-stat-label">累计死亡(头)</div>
+                        </div>
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value ${deathAnalysisB.mortality_rate > 5 ? 'text-danger' : ''}">${deathAnalysisB.mortality_rate || 0}%</div>
+                            <div class="comparison-death-stat-label">死亡率</div>
+                        </div>
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value">${deathAnalysisB.peak_death_date || '-'}</div>
+                            <div class="comparison-death-stat-label">死亡峰值日期</div>
+                        </div>
+                        <div class="comparison-death-stat">
+                            <div class="comparison-death-stat-value">${deathAnalysisB.peak_death_count || 0}</div>
+                            <div class="comparison-death-stat-label">峰值死亡(头)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>`;
+
+        return html;
+    }
+
+    // ========== 辅助函数 ==========
+
+    // 计算差异值
+    function calcDiff(valA, valB) {
+        if (valA == null || valB == null) {
+            return { text: '-', color: '' };
+        }
+        const diff = valA - valB;
+        const sign = diff > 0 ? '+' : '';
+        const abs = Math.abs(diff);
+        return {
+            text: `${sign}${abs.toFixed(1)}`,
+            color: diff !== 0 ? (diff > 0 ? 'color:var(--orange);' : 'color:var(--green);') : ''
+        };
+    }
+
+    // 格式化差异值显示
+    function formatDiff(valA, valB, decimals, unit) {
+        if (valA == null || valB == null) {
+            return '<span class="diff-neutral">-</span>';
+        }
+        const diff = valA - valB;
+        const sign = diff > 0 ? '+' : '';
+        const abs = Math.abs(diff);
+        const cls = diff > 0 ? 'diff-worse' : (diff < 0 ? 'diff-better' : 'diff-neutral');
+        return `<span class="${cls}">${sign}${abs.toFixed(decimals)}${unit}</span>`;
+    }
+
     function renderHistoricalReport(data) {
         const batchInfo = data.batch_info || {};
         const dateRange = data.date_range || {};

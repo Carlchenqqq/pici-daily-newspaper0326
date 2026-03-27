@@ -2931,58 +2931,96 @@ class DataProcessor:
         """计算周期统计（整个时间段的汇总）"""
         if not daily_summaries:
             return {}
-        
-        temps = []
-        humis = []
-        co2s = []
-        pressures = []
-        
+
+        all_temps = []
+        all_humis = []
+        all_co2s = []
+        all_pressures = []
+
+        daily_temp_compliance_rates = []
+        daily_humi_compliance_rates = []
+        daily_co2_compliance_rates = []
+        daily_pressure_compliance_rates = []
+
         for d in daily_summaries:
             temp_data = d.get("temperature", {})
             humi_data = d.get("humidity", {})
             co2_data = d.get("co2", {})
             pressure_data = d.get("pressure", {})
-            
+            unit_details = d.get("unit_details", {})
+
             if temp_data.get("avg") is not None:
-                temps.append(temp_data["avg"])
+                all_temps.append(temp_data["avg"])
             if humi_data.get("avg") is not None:
-                humis.append(humi_data["avg"])
+                all_humis.append(humi_data["avg"])
             if co2_data.get("avg") is not None:
-                co2s.append(co2_data["avg"])
+                all_co2s.append(co2_data["avg"])
             if pressure_data.get("avg") is not None:
-                pressures.append(pressure_data["avg"])
-        
-        # 计算达标率（假设目标温度26°C±3°C，湿度60-80%，CO2<1500ppm，压差>0）
-        temp_compliant = len([t for t in temps if 23 <= t <= 29]) if temps else 0
-        humi_compliant = len([h for h in humis if 50 <= h <= 85]) if humis else 0
-        co2_compliant = len([c for c in co2s if c < 1500]) if co2s else 0
-        pressure_compliant = len([p for p in pressures if p > 0]) if pressures else 0
-        
+                all_pressures.append(pressure_data["avg"])
+
+            unit_temp_rates = []
+            unit_humi_rates = []
+            unit_co2_rates = []
+            unit_pressure_rates = []
+
+            for unit_id, unit_data in unit_details.items():
+                pig_count = unit_data.get("pig_count", 0)
+                if pig_count <= 0:
+                    continue
+
+                temp_unit = unit_data.get("temperature", {})
+                humi_unit = unit_data.get("humidity", {})
+                co2_unit = unit_data.get("co2", {})
+                pressure_unit = unit_data.get("pressure", {})
+
+                if temp_unit.get("within_target_pct") is not None:
+                    unit_temp_rates.append(temp_unit["within_target_pct"])
+                if humi_unit.get("within_target_pct") is not None:
+                    unit_humi_rates.append(humi_unit["within_target_pct"])
+                if co2_unit.get("within_target_pct") is not None:
+                    unit_co2_rates.append(co2_unit["within_target_pct"])
+                if pressure_unit.get("within_target_pct") is not None:
+                    unit_pressure_rates.append(pressure_unit["within_target_pct"])
+
+            if unit_temp_rates:
+                daily_temp_compliance_rates.append(np.mean(unit_temp_rates))
+            if unit_humi_rates:
+                daily_humi_compliance_rates.append(np.mean(unit_humi_rates))
+            if unit_co2_rates:
+                daily_co2_compliance_rates.append(np.mean(unit_co2_rates))
+            if unit_pressure_rates:
+                daily_pressure_compliance_rates.append(np.mean(unit_pressure_rates))
+
+        temp_compliant = len([t for t in daily_temp_compliance_rates if t >= 50]) if daily_temp_compliance_rates else 0
+        humi_compliant = len([h for h in daily_humi_compliance_rates if h >= 50]) if daily_humi_compliance_rates else 0
+        co2_compliant = len([c for c in daily_co2_compliance_rates if c >= 50]) if daily_co2_compliance_rates else 0
+        pressure_compliant = len([p for p in daily_pressure_compliance_rates if p >= 50]) if daily_pressure_compliance_rates else 0
+
         return {
             "temperature": {
-                "avg": round(sum(temps) / len(temps), 1) if temps else None,
-                "max": round(max(temps), 1) if temps else None,
-                "min": round(min(temps), 1) if temps else None,
+                "avg": round(np.mean(all_temps), 1) if all_temps else None,
+                "max": round(np.max(all_temps), 1) if all_temps else None,
+                "min": round(np.min(all_temps), 1) if all_temps else None,
                 "compliant_days": temp_compliant,
-                "compliant_rate": round(temp_compliant / len(temps) * 100, 1) if temps else 0,
+                "compliant_rate": round(temp_compliant / len(daily_temp_compliance_rates) * 100, 1) if daily_temp_compliance_rates else 0,
             },
             "humidity": {
-                "avg": round(sum(humis) / len(humis), 1) if humis else None,
-                "max": round(max(humis), 1) if humis else None,
-                "min": round(min(humis), 1) if humis else None,
+                "avg": round(np.mean(all_humis), 1) if all_humis else None,
+                "max": round(np.max(all_humis), 1) if all_humis else None,
+                "min": round(np.min(all_humis), 1) if all_humis else None,
                 "compliant_days": humi_compliant,
-                "compliant_rate": round(humi_compliant / len(humis) * 100, 1) if humis else 0,
+                "compliant_rate": round(humi_compliant / len(daily_humi_compliance_rates) * 100, 1) if daily_humi_compliance_rates else 0,
             },
             "co2": {
-                "avg": round(sum(co2s) / len(co2s), 0) if co2s else None,
-                "max": round(max(co2s), 0) if co2s else None,
+                "avg": round(np.mean(all_co2s), 0) if all_co2s else None,
+                "max": round(np.max(all_co2s), 0) if all_co2s else None,
                 "compliant_days": co2_compliant,
-                "compliant_rate": round(co2_compliant / len(co2s) * 100, 1) if co2s else 0,
+                "compliant_rate": round(co2_compliant / len(daily_co2_compliance_rates) * 100, 1) if daily_co2_compliance_rates else 0,
             },
             "pressure": {
-                "avg": round(sum(pressures) / len(pressures), 1) if pressures else None,
+                "avg": round(np.mean(all_pressures), 1) if all_pressures else None,
                 "compliant_days": pressure_compliant,
-                "compliant_rate": round(pressure_compliant / len(pressures) * 100, 1) if pressures else 0,
+                "compliant_rate": round(pressure_compliant / len(daily_pressure_compliance_rates) * 100, 1) if daily_pressure_compliance_rates else 0,
             },
             "total_days": len(daily_summaries)
         }
