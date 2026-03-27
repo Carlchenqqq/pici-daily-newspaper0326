@@ -192,6 +192,28 @@ def api_clear_cache():
     clear_cache()
     return jsonify({"success": True, "message": "Cache cleared"})
 
+@app.route('/api/cache/refresh', methods=['POST', 'GET'])
+def api_refresh_cache():
+    batch_id = request.args.get('batch_id')
+    print(f'[API /api/cache/refresh] GET batch_id: {batch_id}')
+    
+    if not batch_id and request.is_json:
+        batch_id = request.json.get('batch_id')
+        print(f'[API /api/cache/refresh] POST JSON batch_id: {batch_id}')
+    
+    if not batch_id:
+        print(f'[API /api/cache/refresh] ERROR: batch_id is required')
+        return jsonify({"success": False, "error": "batch_id is required"}), 400
+    
+    try:
+        print(f'[API /api/cache/refresh] 开始刷新批次: {batch_id}')
+        result = processor.refresh_cache(batch_id)
+        print(f'[API /api/cache/refresh] 刷新成功: {result}')
+        return jsonify(result)
+    except Exception as e:
+        print(f'[API /api/cache/refresh] 刷新失败: {e}')
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # =============================================
 # HISTORICAL DATA API (NEW)
 # =============================================

@@ -37,6 +37,8 @@
             --yellow-bg: rgba(212, 160, 60, 0.08);
             --purple: #6b5b95;
             --purple-bg: rgba(107, 91, 149, 0.08);
+            --cyan: #0891b2;
+            --cyan-bg: rgba(8, 145, 178, 0.08);
             --amber: #b8860b;
             --amber-bg: rgba(184, 134, 11, 0.08);
             --shadow: 0 2px 12px rgba(26, 22, 18, 0.06);
@@ -1685,6 +1687,7 @@
             </div>
             <button class="btn" id="analyzeBtn" onclick="loadReport()">分析</button>
             <button class="btn" id="historicalBtn" onclick="loadHistoricalReport()" style="display:none;background:var(--purple);">历史分析</button>
+            <button class="btn" id="refreshCacheBtn" onclick="refreshCurrentBatchCache()" style="display:none;background:var(--cyan);margin-left:8px;">更新缓存</button>
         </div>
     </header>
 
@@ -1729,6 +1732,7 @@
         const analyzeBtn = document.getElementById('analyzeBtn');
         const historicalBtn = document.getElementById('historicalBtn');
         const comparisonBtn = document.getElementById('comparisonBtn');
+        const refreshCacheBtn = document.getElementById('refreshCacheBtn');
         const comparisonBatchAGroup = document.getElementById('comparisonBatchAGroup');
         const comparisonBatchBGroup = document.getElementById('comparisonBatchBGroup');
         const batchSelectGroup = document.getElementById('batchSelectGroup');
@@ -1739,6 +1743,7 @@
             analyzeBtn.style.display = 'none';
             historicalBtn.style.display = '';
             comparisonBtn.style.display = 'none';
+            refreshCacheBtn.style.display = '';
             comparisonBatchAGroup.style.display = 'none';
             comparisonBatchBGroup.style.display = 'none';
             batchSelectGroup.style.display = '';
@@ -1748,6 +1753,7 @@
             analyzeBtn.style.display = 'none';
             historicalBtn.style.display = 'none';
             comparisonBtn.style.display = '';
+            refreshCacheBtn.style.display = '';
             comparisonBatchAGroup.style.display = '';
             comparisonBatchBGroup.style.display = '';
             batchSelectGroup.style.display = 'none';
@@ -1757,6 +1763,7 @@
             analyzeBtn.style.display = '';
             historicalBtn.style.display = 'none';
             comparisonBtn.style.display = 'none';
+            refreshCacheBtn.style.display = 'none';
             comparisonBatchAGroup.style.display = 'none';
             comparisonBatchBGroup.style.display = 'none';
             batchSelectGroup.style.display = '';
@@ -1837,7 +1844,60 @@
             }
         }
     }
-    
+
+    async function refreshCurrentBatchCache() {
+        const mode = document.getElementById('analysisMode').value;
+        let batchId = '';
+
+        console.log('[刷新缓存] 当前模式:', mode);
+
+        if (mode === 'historical') {
+            const batchSelect = document.getElementById('batchSelect');
+            batchId = batchSelect ? batchSelect.value : '';
+            console.log('[刷新缓存] 历史分析模式，批次 ID:', batchId);
+        } else if (mode === 'comparison') {
+            const batchSelectA = document.getElementById('comparisonBatchA');
+            batchId = batchSelectA ? batchSelectA.value : '';
+            console.log('[刷新缓存] 横向对比模式，批次 A ID:', batchId);
+        }
+
+        if (!batchId) {
+            alert('请先选择要刷新缓存的批次');
+            return;
+        }
+
+        if (!confirm(`确定要刷新批次 "${batchId}" 的缓存吗？\n这将重新计算所有数据。`)) {
+            return;
+        }
+
+        const btn = document.getElementById('refreshCacheBtn');
+        const originalText = btn.textContent;
+        btn.textContent = '更新中...';
+        btn.disabled = true;
+
+        try {
+            const resp = await fetch(`/api/cache/refresh?batch_id=${encodeURIComponent(batchId)}`);
+            const result = await resp.json();
+
+            if (result.success) {
+                localStorage.removeItem(getHistoricalReportCacheKey(batchId));
+                alert(`批次 ${batchId} 缓存已更新`);
+                if (mode === 'historical') {
+                    loadHistoricalReport();
+                } else if (mode === 'comparison') {
+                    loadComparisonReport();
+                }
+            } else {
+                alert(`更新失败: ${result.error || result.message}`);
+            }
+        } catch (e) {
+            alert(`更新失败: ${e.message}`);
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+
     async function loadHistoricalReport() {
         const batchSelect = document.getElementById('batchSelect');
         const batchId = batchSelect ? batchSelect.value : '';

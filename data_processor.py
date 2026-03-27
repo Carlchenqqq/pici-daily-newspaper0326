@@ -69,7 +69,99 @@ class DataProcessor:
         self._batch_config_cache = None
         self._batch_config_time = 0
         self.batch_config = self._load_batch_config()
-    
+        self._cache_dir = self.data_root / "cache"
+        self._cache_dir.mkdir(exist_ok=True)
+        self._load_all_caches_from_files()
+
+    def _get_cache_file_path(self, batch_id: str) -> Path:
+        safe_batch_id = batch_id.replace('/', '_').replace('\\', '_')
+        return self._cache_dir / f"historical_report_{safe_batch_id}.json"
+
+    def _load_all_caches_from_files(self):
+        if not self._cache_dir.exists():
+            return
+        for cache_file in self._cache_dir.glob("historical_report_*.json"):
+            try:
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                batch_id = data.get('batch_info', {}).get('batch_id', '')
+                if batch_id:
+                    cache_key_prefix = f"{batch_id}:"
+                    for key in list(self._daily_summaries_cache.keys()):
+                        if key.startswith(cache_key_prefix):
+                            pass
+                    batch_info = data.get('batch_info', {})
+                    start_date = data.get('date_range', {}).get('start_date', '')
+                    end_date = data.get('date_range', {}).get('end_date', '')
+                    if start_date and end_date:
+                        cache_key = f"{batch_id}:{start_date}:{end_date}"
+                        daily_summaries = data.get('daily_summaries', [])
+                        if daily_summaries:
+                            self._daily_summaries_cache[cache_key] = (time.time(), daily_summaries)
+                            print(f"[缓存加载] 从文件加载批次 {batch_id} ({start_date} ~ {end_date}), {len(daily_summaries)} 条记录")
+            except Exception as e:
+                print(f"[缓存加载失败] {cache_file.name}: {e}")
+
+    def _save_report_to_cache_file(self, batch_id: str, report_data: Dict):
+        cache_file = self._get_cache_file_path(batch_id)
+        try:
+            clean_data = self._clean_report_data(report_data)
+            with open(cache_file, 'w', encoding='utf-8') as f:
+                json.dump(clean_data, f, ensure_ascii=False, indent=2)
+            print(f"[缓存保存] 批次 {batch_id} -> {cache_file.name}")
+        except Exception as e:
+            print(f"[缓存保存失败] {cache_file.name}: {e}")
+
+    def _clean_report_data(self, data: Any) -> Any:
+        if isinstance(data, dict):
+            result = {}
+            for k, v in data.items():
+                if v is None:
+                    continue
+                if isinstance(v, (np.bool_, np.integer, np.floating)):
+                    v = clean_nan(v)
+                elif isinstance(v, (list, tuple)):
+                    v = self._clean_report_data(v)
+                elif isinstance(v, dict):
+                    v = self._clean_report_data(v)
+                result[k] = v
+            return result
+        elif isinstance(data, list):
+            return [self._clean_report_data(item) for item in data]
+        elif isinstance(data, (np.bool_, np.integer, np.floating)):
+            return clean_nan(data)
+        return data
+
+    def refresh_cache(self, batch_id: str, start_date: str = None, end_date: str = None, days: int = None) -> Dict:
+        batch_info = self.get_batch_info(batch_id)
+        if not batch_info:
+            return {"success": False, "error": f"批次 {batch_id} 不存在"}
+
+        if not start_date and not end_date and not days:
+            days = 365
+
+        if end_date is None:
+            from datetime import datetime, timedelta
+            end_date = datetime.now().strftime('%Y-%m-%d')
+
+        if start_date is None:
+            from datetime import datetime, timedelta
+            start_dt = datetime.now() - timedelta(days=days)
+            start_date = start_dt.strftime('%Y-%m-%d')
+
+        cache_key = f"{batch_id}:{start_date}:{end_date}"
+        if cache_key in self._daily_summaries_cache:
+            del self._daily_summaries_cache[cache_key]
+
+        result = self.generate_historical_report(batch_id, end_date, start_date)
+        if "error" not in result:
+            cache_file = self._get_cache_file_path(batch_id)
+            if cache_file.exists():
+                cache_file.unlink()
+                print(f"[缓存刷新] 删除旧缓存文件: {cache_file.name}")
+
+        return {"success": True, "message": f"批次 {batch_id} 缓存已刷新"}
+
     def _get_file_index(self, batch_id: str) -> Dict[str, List[Dict]]:
         cache_key = f"file_index:{batch_id}"
         now = time.time()
@@ -2091,23 +2183,23 @@ class DataProcessor:
         
         # 计算周期统计
         period_stats = self._calculate_period_statistics(daily_summaries)
-        
+
         # 获取历史死亡数据
         death_analysis = self._analyze_historical_death(batch_id, start_date, end_date)
-        
+
         # 生成趋势数据
         trend_data = self._build_historical_trend(daily_summaries)
-        
+
         # 计算单元历史对比
         unit_comparison = self._build_historical_unit_comparison(daily_summaries)
-        
+
         # 单元综合评价（新增）
         unit_evaluation = self._evaluate_unit_performance(daily_summaries, batch_info)
-        
+
         # 历史异常检测
         historical_anomalies = self._detect_historical_anomalies(daily_summaries, batch_info)
-        
-        return {
+
+        result = {
             "batch_info": batch_info,
             "date_range": {
                 "start_date": start_date,
@@ -2122,6 +2214,9 @@ class DataProcessor:
             "unit_evaluation": unit_evaluation,
             "historical_anomalies": historical_anomalies
         }
+
+        self._save_report_to_cache_file(batch_id, result)
+        return result
     
     def _build_historical_unit_comparison(self, daily_summaries: List[Dict]) -> Dict:
         """构建历史周期内各单元的对比分析 - 重点关注异常情况"""
@@ -3001,6 +3096,7 @@ class DataProcessor:
                 "avg": round(np.mean(all_temps), 1) if all_temps else None,
                 "max": round(np.max(all_temps), 1) if all_temps else None,
                 "min": round(np.min(all_temps), 1) if all_temps else None,
+                "std": round(np.std(all_temps), 2) if all_temps else None,
                 "compliant_days": temp_compliant,
                 "compliant_rate": round(temp_compliant / len(daily_temp_compliance_rates) * 100, 1) if daily_temp_compliance_rates else 0,
             },
@@ -3008,17 +3104,20 @@ class DataProcessor:
                 "avg": round(np.mean(all_humis), 1) if all_humis else None,
                 "max": round(np.max(all_humis), 1) if all_humis else None,
                 "min": round(np.min(all_humis), 1) if all_humis else None,
+                "std": round(np.std(all_humis), 2) if all_humis else None,
                 "compliant_days": humi_compliant,
                 "compliant_rate": round(humi_compliant / len(daily_humi_compliance_rates) * 100, 1) if daily_humi_compliance_rates else 0,
             },
             "co2": {
                 "avg": round(np.mean(all_co2s), 0) if all_co2s else None,
                 "max": round(np.max(all_co2s), 0) if all_co2s else None,
+                "std": round(np.std(all_co2s), 0) if all_co2s else None,
                 "compliant_days": co2_compliant,
                 "compliant_rate": round(co2_compliant / len(daily_co2_compliance_rates) * 100, 1) if daily_co2_compliance_rates else 0,
             },
             "pressure": {
                 "avg": round(np.mean(all_pressures), 1) if all_pressures else None,
+                "std": round(np.std(all_pressures), 2) if all_pressures else None,
                 "compliant_days": pressure_compliant,
                 "compliant_rate": round(pressure_compliant / len(daily_pressure_compliance_rates) * 100, 1) if daily_pressure_compliance_rates else 0,
             },
