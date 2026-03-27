@@ -25,6 +25,9 @@ test_*.html
 test_*.py
 debug_*.log
 
+# Cache
+cache/
+
 # Virtual environment
 venv/
 env/
