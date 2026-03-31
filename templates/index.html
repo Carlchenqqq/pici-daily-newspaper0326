@@ -3064,8 +3064,8 @@
         const batchNameA = dataA.batch_info?.batch_name || dataA.batch_info?.batch_id || '批次A';
         const batchNameB = dataB.batch_info?.batch_name || dataB.batch_info?.batch_id || '批次B';
 
-        const allUnitsA = Object.keys(dailySummariesA[0]?.unit_details || {});
-        const allUnitsB = Object.keys(dailySummariesB[0]?.unit_details || {});
+        const allUnitsA = [...new Set(dailySummariesA.flatMap(d => Object.keys(d.unit_details || {})))];
+        const allUnitsB = [...new Set(dailySummariesB.flatMap(d => Object.keys(d.unit_details || {})))];
 
         const unitsTypeA = { baoyu: [], yufei: [] };
         allUnitsA.forEach(u => {
@@ -3118,24 +3118,26 @@
             let sectionHtml = `<div style="margin-bottom:24px;">
                 <div style="font-weight:600;font-size:14px;margin-bottom:12px;color:var(--text-secondary);padding-bottom:8px;border-bottom:2px solid var(--border);">${title}</div>
                 <div class="card">
-                    <div class="card-body" style="padding:0;overflow-x:auto;">
-                        <table class="data-table" style="table-layout:fixed;width:${80 + totalCols * 80}px;border-collapse:collapse;">
-                            <thead style="position:sticky;top:0;z-index:30;background:var(--bg);box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="card-body" style="padding:0;position:relative;">
+                        <div style="overflow-x:auto;max-height:70vh;overflow-y:auto;">
+                        <table class="data-table" style="table-layout:fixed;width:${80 + totalCols * 80}px;border-collapse:separate;border-spacing:0;">
+                            <thead>
                                 <tr>
-                                    <th style="position:sticky;left:0;z-index:35;background:var(--bg);box-shadow:2px 0 5px rgba(0,0,0,0.1);width:60px;padding:8px 4px;border:1px solid var(--border);" rowspan="2">日龄</th>`;
+                                    <th style="position:sticky;top:0;left:0;z-index:45;background:#f3efe8;box-shadow:2px 0 5px rgba(0,0,0,0.1);width:60px;padding:8px 4px;border:1px solid var(--border);" rowspan="2">日龄</th>`;
 
-            sectionHtml += `<th colspan="${unitsA.length * 4}" style="text-align:center;background:var(--green-bg);border-left:2px solid var(--border);padding:8px 4px;border:1px solid var(--border);">${batchAName}（${unitsA.map(u => `${u}-四个指标`).join('、')}）</th>`;
-            sectionHtml += `<th colspan="${unitsB.length * 4}" style="text-align:center;background:var(--orange-bg);border-left:2px solid var(--border);padding:8px 4px;border:1px solid var(--border);">${batchBName}（${unitsB.map(u => `${u}-四个指标`).join('、')}）</th>`;
+            sectionHtml += `<th colspan="${unitsA.length * 4}" style="position:sticky;top:0;z-index:40;text-align:center;background:#dbe9e1;border-left:2px solid var(--border);padding:8px 4px;border:1px solid var(--border);">${batchAName}（${unitsA.map(u => `${u}-四个指标`).join('、')}）</th>`;
+            sectionHtml += `<th colspan="${unitsB.length * 4}" style="position:sticky;top:0;z-index:40;text-align:center;background:#f6e4d6;border-left:4px solid #c9732f;padding:8px 4px;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);">${batchBName}（${unitsB.map(u => `${u}-四个指标`).join('、')}）</th>`;
             sectionHtml += `</tr><tr>`;
 
             unitsA.forEach(unit => {
                 metrics.forEach(m => {
-                    sectionHtml += `<th style="text-align:center;background:var(--green-bg);border-left:1px solid var(--border);width:80px;padding:4px 2px;border:1px solid var(--border);font-size:10px;">${unit}-${m.label}</th>`;
+                    sectionHtml += `<th style="position:sticky;top:35px;z-index:35;text-align:center;background:#dbe9e1;border-left:1px solid var(--border);width:80px;padding:4px 2px;border:1px solid var(--border);font-size:10px;">${unit}-${m.label}</th>`;
                 });
             });
             unitsB.forEach(unit => {
-                metrics.forEach(m => {
-                    sectionHtml += `<th style="text-align:center;background:var(--orange-bg);border-left:1px solid var(--border);width:80px;padding:4px 2px;border:1px solid var(--border);font-size:10px;">${unit}-${m.label}</th>`;
+                metrics.forEach((m, metricIndex) => {
+                    const splitBorder = unit === unitsB[0] && metricIndex === 0 ? 'border-left:4px solid #c9732f;' : 'border-left:1px solid var(--border);';
+                    sectionHtml += `<th style="position:sticky;top:35px;z-index:35;text-align:center;background:#f6e4d6;${splitBorder}width:80px;padding:4px 2px;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:10px;">${unit}-${m.label}</th>`;
                 });
             });
             sectionHtml += `</tr></thead><tbody>`;
@@ -3143,6 +3145,12 @@
             commonDayAges.forEach(dayAge => {
                 const summaryA = getDayAgeSummary(dailySummariesA, dayAge);
                 const summaryB = getDayAgeSummary(dailySummariesB, dayAge);
+
+                const rowHasData =
+                    unitsA.some(unit => metrics.some(m => summaryA?.unit_details?.[unit]?.[m.key]?.within_target_pct != null)) ||
+                    unitsB.some(unit => metrics.some(m => summaryB?.unit_details?.[unit]?.[m.key]?.within_target_pct != null));
+
+                if (!rowHasData) return;
 
                 sectionHtml += `<tr>
                     <td style="font-weight:600;position:sticky;left:0;z-index:10;background:var(--bg);box-shadow:2px 0 5px rgba(0,0,0,0.1);padding:6px 4px;border:1px solid var(--border);">${dayAge}天</td>`;
@@ -3156,18 +3164,19 @@
                     });
                 });
                 unitsB.forEach(unit => {
-                    metrics.forEach(m => {
+                    metrics.forEach((m, metricIndex) => {
                         const unitData = summaryB?.unit_details?.[unit]?.[m.key] || {};
                         const val = unitData.within_target_pct ?? null;
                         const colors = getComplianceColor(val);
-                        sectionHtml += `<td style="text-align:center;padding:4px 2px;border:1px solid var(--border);background:${colors.bg};color:${colors.color};font-weight:600;font-size:11px;">${val !== null ? val + '%' : '-'}</td>`;
+                        const splitBorder = unit === unitsB[0] && metricIndex === 0 ? 'border-left:4px solid #c9732f;' : 'border-left:1px solid var(--border);';
+                        sectionHtml += `<td style="text-align:center;padding:4px 2px;${splitBorder}border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:${colors.bg};color:${colors.color};font-weight:600;font-size:11px;">${val !== null ? val + '%' : '-'}</td>`;
                     });
                 });
 
                 sectionHtml += `</tr>`;
             });
 
-            sectionHtml += `</tbody></table></div></div>`;
+            sectionHtml += `</tbody></table></div></div></div>`;
             return sectionHtml;
         };
 

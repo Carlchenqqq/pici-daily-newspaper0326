@@ -132,6 +132,29 @@ class DataProcessor:
             return clean_nan(data)
         return data
 
+    def _filter_daily_summaries_for_active_units(self, daily_summaries: List[Dict]) -> List[Dict]:
+        """过滤当天没有猪的单元，以及过滤掉整天都没有有效单元的日期。"""
+        filtered_summaries = []
+
+        for summary in daily_summaries or []:
+            unit_details = summary.get("unit_details", {}) or {}
+            filtered_unit_details = {}
+
+            for unit, detail in unit_details.items():
+                pig_count = detail.get("pig_count", 0) or 0
+                if pig_count > 0:
+                    filtered_unit_details[unit] = detail
+
+            if not filtered_unit_details:
+                continue
+
+            summary_copy = dict(summary)
+            summary_copy["unit_details"] = filtered_unit_details
+            summary_copy["unit_count"] = len(filtered_unit_details)
+            filtered_summaries.append(summary_copy)
+
+        return filtered_summaries
+
     def refresh_cache(self, batch_id: str, start_date: str = None, end_date: str = None, days: int = None) -> Dict:
         batch_info = self.get_batch_info(batch_id)
         if not batch_info:
@@ -2151,7 +2174,7 @@ class DataProcessor:
         if cache_key in self._daily_summaries_cache:
             cached_time, cached_data = self._daily_summaries_cache[cache_key]
             if now - cached_time < self._daily_summaries_ttl:
-                daily_summaries = cached_data
+                daily_summaries = self._filter_daily_summaries_for_active_units(cached_data)
                 period_stats = self._calculate_period_statistics(daily_summaries)
                 death_analysis = self._analyze_historical_death(batch_id, start_date, end_date)
                 trend_data = self._build_historical_trend(daily_summaries)
@@ -2177,8 +2200,10 @@ class DataProcessor:
         # 加载多日数据
         multi_day_data = self._load_multi_day_data(date_range_files)
         
-        daily_summaries = self._calculate_daily_summaries(multi_day_data, batch_id)
-        
+        daily_summaries = self._filter_daily_summaries_for_active_units(
+            self._calculate_daily_summaries(multi_day_data, batch_id)
+        )
+
         self._daily_summaries_cache[cache_key] = (now, daily_summaries)
         
         # 计算周期统计
@@ -2748,6 +2773,10 @@ class DataProcessor:
 
                     unit_summary["pig_count"] = pig_count
 
+                    # 每日汇总对比中过滤当天没有猪的单元
+                    if pig_count <= 0:
+                        continue
+
                     # 提取日龄字段（从当日有猪的任意一个单元获取，每个日期只获取一次）
                     # 注意：取第三条有效值，因为第一条可能涉及跨天上报，日龄未更新
                     day_age = None
@@ -3017,7 +3046,7 @@ class DataProcessor:
                     "min": round(np.min(all_day_pressures), 1)
                 }
             
-            if all_day_temps or all_day_humis or all_day_co2s or all_day_pressures:
+            if unit_details and (all_day_temps or all_day_humis or all_day_co2s or all_day_pressures):
                 daily_summaries.append(day_summary)
         
         return daily_summaries
