@@ -155,6 +155,37 @@ class DataProcessor:
 
         return filtered_summaries
 
+    def _extract_summary_day_age(self, summary: Dict) -> Optional[int]:
+        day_age = summary.get("day_age")
+        if day_age is not None and day_age != "":
+            try:
+                return int(day_age)
+            except (TypeError, ValueError):
+                pass
+
+        for detail in (summary.get("unit_details", {}) or {}).values():
+            unit_day_age = detail.get("day_age")
+            if unit_day_age is not None and unit_day_age != "":
+                try:
+                    return int(unit_day_age)
+                except (TypeError, ValueError):
+                    continue
+
+        return None
+
+    def _daily_summaries_have_day_age(self, daily_summaries: List[Dict]) -> bool:
+        if not daily_summaries:
+            return True
+        return all(self._extract_summary_day_age(summary) is not None for summary in daily_summaries)
+
+    def _should_fallback_to_excel_for_sheet(self, sheet_name: str, df: pd.DataFrame) -> bool:
+        if sheet_name != '单元信息' or df.empty:
+            return False
+        if '日龄' not in df.columns:
+            return True
+        day_age_vals = pd.to_numeric(df['日龄'], errors='coerce').dropna()
+        return len(day_age_vals) == 0
+
     def refresh_cache(self, batch_id: str, start_date: str = None, end_date: str = None, days: int = None) -> Dict:
         batch_info = self.get_batch_info(batch_id)
         if not batch_info:
@@ -221,6 +252,7 @@ class DataProcessor:
     def _load_batch_config(self) -> Dict:
         now = time.time()
         if self._batch_config_cache is not None and now - self._batch_config_time < 10:
+            self.batch_config = self._batch_config_cache
             return self._batch_config_cache
         
         config_path = self.data_root / "batch_config.json"
@@ -229,11 +261,13 @@ class DataProcessor:
                 config = json.load(f)
                 self._batch_config_cache = config
                 self._batch_config_time = now
+                self.batch_config = config
                 return config
         
         config = self._default_batch_config()
         self._batch_config_cache = config
         self._batch_config_time = now
+        self.batch_config = config
         return config
     
     def _default_batch_config(self) -> Dict:
@@ -277,7 +311,7 @@ class DataProcessor:
         return {"batches": batches}
     
     def get_all_batches(self) -> List[Dict]:
-        return self.batch_config.get("batches", [])
+        return self._load_batch_config().get("batches", [])
     
     def get_batch_info(self, batch_id: str) -> Optional[Dict]:
         for batch in self.get_all_batches():
@@ -315,7 +349,9 @@ class DataProcessor:
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
         
-        self._batch_config_cache = None
+        self._batch_config_cache = config
+        self._batch_config_time = time.time()
+        self.batch_config = config
         
         return {"success": True, "message": "更新成功"}
     
@@ -505,9 +541,12 @@ class DataProcessor:
                 if usecols:
                     available_cols = [col for col in usecols if col in df.columns]
                     df = df[available_cols] if available_cols else df
-                if usecols is None:
-                    self._sheet_cache[key] = df
-                return df
+                if self._should_fallback_to_excel_for_sheet(sheet_name, df):
+                    print(f"Warning: CSV {file_path} missing day_age values, falling back to Excel")
+                else:
+                    if usecols is None:
+                        self._sheet_cache[key] = df
+                    return df
             except Exception as e:
                 print(f"Warning: Failed to read CSV {file_path}: {e}")
                 return pd.DataFrame()
@@ -520,9 +559,12 @@ class DataProcessor:
                 if usecols:
                     available_cols = [col for col in usecols if col in df.columns]
                     df = df[available_cols] if available_cols else df
-                if usecols is None:
-                    self._sheet_cache[key] = df
-                return df  # type: ignore
+                if self._should_fallback_to_excel_for_sheet(sheet_name, df):
+                    print(f"Warning: CSV {csv_path} missing day_age values, falling back to Excel")
+                else:
+                    if usecols is None:
+                        self._sheet_cache[key] = df
+                    return df  # type: ignore
             except Exception as e:
                 print(f"Warning: Failed to read CSV {csv_path}: {e}, falling back to Excel")
         
@@ -2175,27 +2217,29 @@ class DataProcessor:
             cached_time, cached_data = self._daily_summaries_cache[cache_key]
             if now - cached_time < self._daily_summaries_ttl:
                 daily_summaries = self._filter_daily_summaries_for_active_units(cached_data)
-                period_stats = self._calculate_period_statistics(daily_summaries)
-                death_analysis = self._analyze_historical_death(batch_id, start_date, end_date)
-                trend_data = self._build_historical_trend(daily_summaries)
-                unit_comparison = self._build_historical_unit_comparison(daily_summaries)
-                unit_evaluation = self._evaluate_unit_performance(daily_summaries, batch_info)
-                historical_anomalies = self._detect_historical_anomalies(daily_summaries, batch_info)
-                return {
-                    "batch_info": batch_info,
-                    "date_range": {
-                        "start_date": start_date,
-                        "end_date": end_date,
-                        "total_days": len(daily_summaries)
-                    },
-                    "period_statistics": period_stats,
-                    "daily_summaries": daily_summaries,
-                    "death_analysis": death_analysis,
-                    "trend_data": trend_data,
-                    "unit_comparison": unit_comparison,
-                    "unit_evaluation": unit_evaluation,
-                    "historical_anomalies": historical_anomalies
-                }
+                if self._daily_summaries_have_day_age(daily_summaries):
+                    period_stats = self._calculate_period_statistics(daily_summaries)
+                    death_analysis = self._analyze_historical_death(batch_id, start_date, end_date)
+                    trend_data = self._build_historical_trend(daily_summaries)
+                    unit_comparison = self._build_historical_unit_comparison(daily_summaries)
+                    unit_evaluation = self._evaluate_unit_performance(daily_summaries, batch_info)
+                    historical_anomalies = self._detect_historical_anomalies(daily_summaries, batch_info)
+                    return {
+                        "batch_info": batch_info,
+                        "date_range": {
+                            "start_date": start_date,
+                            "end_date": end_date,
+                            "total_days": len(daily_summaries)
+                        },
+                        "period_statistics": period_stats,
+                        "daily_summaries": daily_summaries,
+                        "death_analysis": death_analysis,
+                        "trend_data": trend_data,
+                        "unit_comparison": unit_comparison,
+                        "unit_evaluation": unit_evaluation,
+                        "historical_anomalies": historical_anomalies
+                    }
+                print(f"[缓存失效] 批次 {batch_id} ({start_date} ~ {end_date}) 缺少日龄，重新生成历史汇总")
         
         # 加载多日数据
         multi_day_data = self._load_multi_day_data(date_range_files)

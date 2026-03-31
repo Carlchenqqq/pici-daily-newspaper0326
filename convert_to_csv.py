@@ -36,14 +36,15 @@ def convert_excel_to_csv(excel_path, output_dir=None, sample_interval=1):
         df_unit = pd.read_excel(excel_path, sheet_name='单元信息', engine='openpyxl')
         
         if df_unit.empty:
-            print(f"  ⚠️  单元信息为空，跳过")
+            print("  [WARN] 单元信息为空，跳过")
             return None
         
         # 提取需要的列
         needed_columns = [
             '时间', '单元类型', '目标温度(℃)', '目标湿度(%)', '通风模式',
             '舍内温度(℃)', '舍内湿度(%)', '二氧化碳均值(ppm)', '压差均值(pa)',
-            '栋舍', '单元', '装猪数量'
+            '栋舍', '单元', '装猪数量',
+            '场区', '猪只体重(Kg)', '日龄', '通风季节', '工作模式', '通风等级'
         ]
         
         # 只保留存在的列
@@ -70,7 +71,7 @@ def convert_excel_to_csv(excel_path, output_dir=None, sample_interval=1):
         csv_path = output_dir / csv_filename
         df_unit.to_csv(csv_path, index=False, encoding='utf-8-sig')
         
-        print(f"  ✅ 单元信息: {len(df_unit)} 行 -> {csv_filename}")
+        print(f"  [OK] 单元信息: {len(df_unit)} 行 -> {csv_filename}")
         
         # 尝试读取室外数据sheet
         try:
@@ -95,15 +96,15 @@ def convert_excel_to_csv(excel_path, output_dir=None, sample_interval=1):
                 csv_outdoor_path = output_dir / csv_outdoor_filename
                 df_outdoor.to_csv(csv_outdoor_path, index=False, encoding='utf-8-sig')
                 
-                print(f"  ✅ 室外数据: {len(df_outdoor)} 行 -> {csv_outdoor_filename}")
+                print(f"  [OK] 室外数据: {len(df_outdoor)} 行 -> {csv_outdoor_filename}")
         
         except Exception as e:
-            print(f"  ℹ️  无室外数据sheet: {e}")
+            print(f"  [INFO] 无室外数据sheet: {e}")
         
         return csv_path
         
     except Exception as e:
-        print(f"  ❌ 转换失败: {e}")
+        print(f"  [ERROR] 转换失败: {e}")
         return None
 
 def convert_batch_directory(batch_dir):
@@ -156,7 +157,12 @@ def main():
     data_root = Path(__file__).parent
     
     # 查找所有批次目录
-    batch_dirs = [d for d in data_root.iterdir() if d.is_dir() and not d.name.startswith('.')]
+    batch_dirs = [
+        d for d in data_root.iterdir()
+        if d.is_dir()
+        and not d.name.startswith('.')
+        and d.name not in {'cache', 'static', 'templates', '__pycache__'}
+    ]
     
     if not batch_dirs:
         print("未找到批次目录")
@@ -171,7 +177,7 @@ def main():
         convert_batch_directory(batch_dir)
     
     print("\n" + "="*60)
-    print("✅ 所有批次转换完成！")
+    print("[OK] 所有批次转换完成！")
     print("="*60)
     print("\n提示:")
     print("  1. CSV文件已生成在原Excel文件同目录")

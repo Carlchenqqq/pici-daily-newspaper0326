@@ -1181,6 +1181,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .comparison-batch-badge {
@@ -1207,6 +1208,24 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text);
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        .comparison-batch-winner-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid rgba(45, 106, 79, 0.18);
+            vertical-align: middle;
         }
 
         .comparison-batch-info {
@@ -1456,6 +1475,27 @@
             background: var(--orange-bg);
             color: var(--orange);
             border: 1px solid rgba(224, 122, 47, 0.2);
+        }
+
+        .comparison-extreme-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            line-height: 1.15;
+            padding: 2px 0;
+            min-height: 38px;
+        }
+
+        .comparison-extreme-value {
+            font-weight: 700;
+        }
+
+        .comparison-extreme-unit {
+            font-size: 11px;
+            color: var(--text-secondary);
+            word-break: break-all;
         }
 
         /* 趋势对比图表 */
@@ -2197,6 +2237,7 @@
         // 初始化趋势对比图表
         setTimeout(() => {
             initComparisonTrendCharts(dataA, dataB);
+            initComparisonDeathChart(dataA, dataB);
         }, 100);
     }
 
@@ -2571,28 +2612,110 @@
             const avgHumiRateA = avg(allHumiRateA);
             const avgHumiRateB = avg(allHumiRateB);
 
-            const bestTempRate = Math.max(...[...allTempRateA, ...allTempRateB].filter(v => v !== null));
-            const worstTempRate = Math.min(...[...allTempRateA, ...allTempRateB].filter(v => v !== null));
-            const bestPressureRate = Math.max(...[...allPressureRateA, ...allPressureRateB].filter(v => v !== null));
-            const worstPressureRate = Math.min(...[...allPressureRateA, ...allPressureRateB].filter(v => v !== null));
-            const bestCo2Rate = Math.max(...[...allCo2RateA, ...allCo2RateB].filter(v => v !== null));
-            const worstCo2Rate = Math.min(...[...allCo2RateA, ...allCo2RateB].filter(v => v !== null));
-            const bestHumiRate = Math.max(...[...allHumiRateA, ...allHumiRateB].filter(v => v !== null));
-            const worstHumiRate = Math.min(...[...allHumiRateA, ...allHumiRateB].filter(v => v !== null));
+            const getBest = values => values.length ? Math.max(...values) : null;
+            const getWorst = values => values.length ? Math.min(...values) : null;
+            const getExtremeEntry = (units, unitsObj, key, subKey, mode) => {
+                let chosen = null;
+                units.forEach(unit => {
+                    const value = unitsObj[unit]?.[key]?.[subKey];
+                    if (value === null || value === undefined) return;
+                    if (!chosen || (mode === 'best' ? value > chosen.value : value < chosen.value)) {
+                        chosen = { unit, value };
+                    }
+                });
+                return chosen;
+            };
+            const getShortUnitName = unit => unit || '-';
+            const formatExtremeCell = (entry, valueFormatter = value => `${value}%`) => {
+                if (!entry) return '-';
+                return `<div class="comparison-extreme-cell">
+                    <div class="comparison-extreme-value">${valueFormatter(entry.value)}</div>
+                    <div class="comparison-extreme-unit">${getShortUnitName(entry.unit)}</div>
+                </div>`;
+            };
+            const bestTempRateA = getBest(allTempRateA);
+            const bestTempRateB = getBest(allTempRateB);
+            const worstTempRateA = getWorst(allTempRateA);
+            const worstTempRateB = getWorst(allTempRateB);
+            const bestPressureRateA = getBest(allPressureRateA);
+            const bestPressureRateB = getBest(allPressureRateB);
+            const worstPressureRateA = getWorst(allPressureRateA);
+            const worstPressureRateB = getWorst(allPressureRateB);
+            const bestCo2RateA = getBest(allCo2RateA);
+            const bestCo2RateB = getBest(allCo2RateB);
+            const worstCo2RateA = getWorst(allCo2RateA);
+            const worstCo2RateB = getWorst(allCo2RateB);
+            const bestHumiRateA = getBest(allHumiRateA);
+            const bestHumiRateB = getBest(allHumiRateB);
+            const worstHumiRateA = getWorst(allHumiRateA);
+            const worstHumiRateB = getWorst(allHumiRateB);
+            const bestTempEntryA = getExtremeEntry(unitsA, unitsObjA, 'temperature', 'within_target_pct', 'best');
+            const bestTempEntryB = getExtremeEntry(unitsB, unitsObjB, 'temperature', 'within_target_pct', 'best');
+            const worstTempEntryA = getExtremeEntry(unitsA, unitsObjA, 'temperature', 'within_target_pct', 'worst');
+            const worstTempEntryB = getExtremeEntry(unitsB, unitsObjB, 'temperature', 'within_target_pct', 'worst');
+            const bestPressureEntryA = getExtremeEntry(unitsA, unitsObjA, 'pressure', 'within_target_pct', 'best');
+            const bestPressureEntryB = getExtremeEntry(unitsB, unitsObjB, 'pressure', 'within_target_pct', 'best');
+            const worstPressureEntryA = getExtremeEntry(unitsA, unitsObjA, 'pressure', 'within_target_pct', 'worst');
+            const worstPressureEntryB = getExtremeEntry(unitsB, unitsObjB, 'pressure', 'within_target_pct', 'worst');
+            const bestCo2EntryA = getExtremeEntry(unitsA, unitsObjA, 'co2', 'within_target_pct', 'best');
+            const bestCo2EntryB = getExtremeEntry(unitsB, unitsObjB, 'co2', 'within_target_pct', 'best');
+            const worstCo2EntryA = getExtremeEntry(unitsA, unitsObjA, 'co2', 'within_target_pct', 'worst');
+            const worstCo2EntryB = getExtremeEntry(unitsB, unitsObjB, 'co2', 'within_target_pct', 'worst');
+            const bestHumiEntryA = getExtremeEntry(unitsA, unitsObjA, 'humidity', 'within_target_pct', 'best');
+            const bestHumiEntryB = getExtremeEntry(unitsB, unitsObjB, 'humidity', 'within_target_pct', 'best');
+            const worstHumiEntryA = getExtremeEntry(unitsA, unitsObjA, 'humidity', 'within_target_pct', 'worst');
+            const worstHumiEntryB = getExtremeEntry(unitsB, unitsObjB, 'humidity', 'within_target_pct', 'worst');
+            const bestTempStabilityEntryA = getExtremeEntry(unitsA, unitsObjA, 'temperature', 'cv', 'worst');
+            const bestTempStabilityEntryB = getExtremeEntry(unitsB, unitsObjB, 'temperature', 'cv', 'worst');
+            const worstTempStabilityEntryA = getExtremeEntry(unitsA, unitsObjA, 'temperature', 'cv', 'best');
+            const worstTempStabilityEntryB = getExtremeEntry(unitsB, unitsObjB, 'temperature', 'cv', 'best');
+            const betterBatch = (() => {
+                let scoreA = 0;
+                let scoreB = 0;
+                const comparePairs = [
+                    { a: avgTempRateA, b: avgTempRateB, higherIsBetter: true },
+                    { a: avgTempStabilityA, b: avgTempStabilityB, higherIsBetter: false },
+                    { a: avgPressureRateA, b: avgPressureRateB, higherIsBetter: true },
+                    { a: avgCo2RateA, b: avgCo2RateB, higherIsBetter: true },
+                    { a: avgHumiRateA, b: avgHumiRateB, higherIsBetter: true }
+                ];
+                comparePairs.forEach(({ a, b, higherIsBetter }) => {
+                    if (a === null || a === undefined || b === null || b === undefined) return;
+                    if (higherIsBetter) {
+                        if (a > b) scoreA += 1;
+                        else if (b > a) scoreB += 1;
+                    } else {
+                        if (a < b) scoreA += 1;
+                        else if (b < a) scoreB += 1;
+                    }
+                });
+                if (scoreA !== scoreB) return scoreA > scoreB ? 'A' : 'B';
+                const tempA = avgTempRateA ?? -Infinity;
+                const tempB = avgTempRateB ?? -Infinity;
+                return tempA >= tempB ? 'A' : 'B';
+            })();
+            const batchAIsBetter = betterBatch === 'A';
+            const batchBIsBetter = betterBatch === 'B';
+            const batchHeaderBetterStyle = 'background:linear-gradient(135deg, rgba(45,106,79,0.18), rgba(45,106,79,0.08));color:var(--green);font-weight:800;border-bottom:2px solid rgba(45,106,79,0.22);';
+            const batchHeaderLoseStyle = 'background:var(--orange-bg);color:var(--text);';
+            const batchHeaderAStyle = batchAIsBetter ? batchHeaderBetterStyle : batchHeaderLoseStyle;
+            const batchHeaderBStyle = batchBIsBetter ? batchHeaderBetterStyle : batchHeaderLoseStyle;
+            const batchHeaderAName = `${batchInfoA.batch_name || '批次A'}${batchAIsBetter ? '<span class="comparison-batch-winner-badge">优</span>' : ''}`;
+            const batchHeaderBName = `${batchInfoB.batch_name || '批次B'}${batchBIsBetter ? '<span class="comparison-batch-winner-badge">优</span>' : ''}`;
 
             let tableHtml = `<div class="comparison-units-group">
                 <div class="comparison-units-group-title">${title}</div>
                 <table class="data-table comparison-units-table">
                     <thead>
                         <tr>
-                            <th style="background:var(--green-bg);">${batchInfoA.batch_name?.substring(0, 8) || '批次A'}</th>
+                            <th style="${batchHeaderAStyle}">${batchHeaderAName}</th>
                             <th style="background:var(--green-bg);">温度达标率</th>
                             <th style="background:var(--green-bg);">温度稳定性</th>
                             <th style="background:var(--green-bg);">压差达标率</th>
                             <th style="background:var(--green-bg);">CO2达标率</th>
                             <th style="background:var(--green-bg);">湿度达标率</th>
                             <th style="border-left: 2px solid var(--border);background:var(--purple-bg);">VS</th>
-                            <th style="background:var(--orange-bg);">${batchInfoB.batch_name?.substring(0, 8) || '批次B'}</th>
+                            <th style="${batchHeaderBStyle}">${batchHeaderBName}</th>
                             <th style="background:var(--orange-bg);">温度达标率</th>
                             <th style="background:var(--orange-bg);">温度稳定性</th>
                             <th style="background:var(--orange-bg);">压差达标率</th>
@@ -2618,33 +2741,33 @@
                         </tr>
                         <tr style="background:rgba(45,106,79,0.05);">
                             <td style="font-weight:700;color:var(--green);">最佳</td>
-                            <td>${bestTempRate !== -Infinity ? bestTempRate + '%' : '-'}</td>
-                            <td>-</td>
-                            <td>${bestPressureRate !== -Infinity ? bestPressureRate + '%' : '-'}</td>
-                            <td>${bestCo2Rate !== -Infinity ? bestCo2Rate + '%' : '-'}</td>
-                            <td>${bestHumiRate !== -Infinity ? bestHumiRate + '%' : '-'}</td>
+                            <td>${formatExtremeCell(bestTempEntryA)}</td>
+                            <td>${formatExtremeCell(bestTempStabilityEntryA, value => formatStability(value))}</td>
+                            <td>${formatExtremeCell(bestPressureEntryA)}</td>
+                            <td>${formatExtremeCell(bestCo2EntryA)}</td>
+                            <td>${formatExtremeCell(bestHumiEntryA)}</td>
                             <td style="border-left: 2px solid var(--border);"></td>
                             <td style="font-weight:700;color:var(--green);">最佳</td>
-                            <td>${bestTempRate !== -Infinity ? bestTempRate + '%' : '-'}</td>
-                            <td>-</td>
-                            <td>${bestPressureRate !== -Infinity ? bestPressureRate + '%' : '-'}</td>
-                            <td>${bestCo2Rate !== -Infinity ? bestCo2Rate + '%' : '-'}</td>
-                            <td>${bestHumiRate !== -Infinity ? bestHumiRate + '%' : '-'}</td>
+                            <td>${formatExtremeCell(bestTempEntryB)}</td>
+                            <td>${formatExtremeCell(bestTempStabilityEntryB, value => formatStability(value))}</td>
+                            <td>${formatExtremeCell(bestPressureEntryB)}</td>
+                            <td>${formatExtremeCell(bestCo2EntryB)}</td>
+                            <td>${formatExtremeCell(bestHumiEntryB)}</td>
                         </tr>
                         <tr style="background:rgba(220,38,38,0.05);">
                             <td style="font-weight:700;color:var(--red);">最差</td>
-                            <td>${worstTempRate !== Infinity ? worstTempRate + '%' : '-'}</td>
-                            <td>-</td>
-                            <td>${worstPressureRate !== Infinity ? worstPressureRate + '%' : '-'}</td>
-                            <td>${worstCo2Rate !== Infinity ? worstCo2Rate + '%' : '-'}</td>
-                            <td>${worstHumiRate !== Infinity ? worstHumiRate + '%' : '-'}</td>
+                            <td>${formatExtremeCell(worstTempEntryA)}</td>
+                            <td>${formatExtremeCell(worstTempStabilityEntryA, value => formatStability(value))}</td>
+                            <td>${formatExtremeCell(worstPressureEntryA)}</td>
+                            <td>${formatExtremeCell(worstCo2EntryA)}</td>
+                            <td>${formatExtremeCell(worstHumiEntryA)}</td>
                             <td style="border-left: 2px solid var(--border);"></td>
                             <td style="font-weight:700;color:var(--red);">最差</td>
-                            <td>${worstTempRate !== Infinity ? worstTempRate + '%' : '-'}</td>
-                            <td>-</td>
-                            <td>${worstPressureRate !== Infinity ? worstPressureRate + '%' : '-'}</td>
-                            <td>${worstCo2Rate !== Infinity ? worstCo2Rate + '%' : '-'}</td>
-                            <td>${worstHumiRate !== Infinity ? worstHumiRate + '%' : '-'}</td>
+                            <td>${formatExtremeCell(worstTempEntryB)}</td>
+                            <td>${formatExtremeCell(worstTempStabilityEntryB, value => formatStability(value))}</td>
+                            <td>${formatExtremeCell(worstPressureEntryB)}</td>
+                            <td>${formatExtremeCell(worstCo2EntryB)}</td>
+                            <td>${formatExtremeCell(worstHumiEntryB)}</td>
                         </tr>`;
 
             const maxPairs = Math.max(unitsA.length, unitsB.length);
@@ -2762,21 +2885,48 @@
         const unitTypesA = batchInfoA.unit_types || {};
         const unitTypesB = batchInfoB.unit_types || {};
         const dailySummariesA = dataA.daily_summaries || [];
-        const dailySummariesB = dataB.daily_summaries || {};
+        const dailySummariesB = dataB.daily_summaries || [];
 
-        const dateToDayAgeA = {};
-        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeA[d.date] = d.day_age; });
-        const dateToDayAgeB = {};
-        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeB[d.date] = d.day_age; });
+        function buildDayAgeMaps(dailySummaries, batchInfo) {
+            const dateToDayAge = {};
+            const dayAgeToDate = {};
+            const entryDate = batchInfo?.entry_date ? new Date(`${batchInfo.entry_date}T00:00:00`) : null;
+
+            dailySummaries.forEach(d => {
+                if (!d?.date) return;
+
+                let dayAge = d.day_age;
+                if (dayAge == null && d?.unit_details) {
+                    const unitDayAge = Object.values(d.unit_details)
+                        .map(detail => detail?.day_age)
+                        .find(value => value !== undefined && value !== null && value !== '');
+                    if (unitDayAge != null) {
+                        dayAge = unitDayAge;
+                    }
+                }
+                if (dayAge == null && entryDate) {
+                    const currentDate = new Date(`${d.date}T00:00:00`);
+                    if (!Number.isNaN(currentDate.getTime())) {
+                        dayAge = Math.floor((currentDate - entryDate) / 86400000) + 1;
+                    }
+                }
+
+                if (dayAge != null && !Number.isNaN(Number(dayAge))) {
+                    const numericDayAge = Number(dayAge);
+                    dateToDayAge[d.date] = numericDayAge;
+                    dayAgeToDate[numericDayAge] = d.date;
+                }
+            });
+
+            return { dateToDayAge, dayAgeToDate };
+        }
+
+        const { dateToDayAge: dateToDayAgeA, dayAgeToDate: dayAgeToDateA } = buildDayAgeMaps(dailySummariesA, batchInfoA);
+        const { dateToDayAge: dateToDayAgeB, dayAgeToDate: dayAgeToDateB } = buildDayAgeMaps(dailySummariesB, batchInfoB);
 
         const dayAgesA = [...new Set(Object.values(dateToDayAgeA))].sort((a, b) => a - b);
         const dayAgesB = [...new Set(Object.values(dateToDayAgeB))].sort((a, b) => a - b);
         const commonDayAges = [...new Set([...dayAgesA, ...dayAgesB])].sort((a, b) => a - b);
-
-        const dayAgeToDateA = {};
-        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateA[d.day_age] = d.date; });
-        const dayAgeToDateB = {};
-        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateB[d.day_age] = d.date; });
 
         const batchNameA = dataA.batch_info?.batch_name || dataA.batch_info?.batch_id || '批次A';
         const batchNameB = dataB.batch_info?.batch_name || dataB.batch_info?.batch_id || '批次B';
@@ -3043,10 +3193,42 @@
         const unitTypesA = batchInfoA.unit_types || {};
         const unitTypesB = batchInfoB.unit_types || {};
 
-        const dateToDayAgeA = {};
-        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeA[d.date] = d.day_age; });
-        const dateToDayAgeB = {};
-        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dateToDayAgeB[d.date] = d.day_age; });
+        function buildDayAgeMaps(dailySummaries, batchInfo) {
+            const dateToDayAge = {};
+            const dayAgeToDate = {};
+            const entryDate = batchInfo?.entry_date ? new Date(`${batchInfo.entry_date}T00:00:00`) : null;
+
+            dailySummaries.forEach(d => {
+                if (!d?.date) return;
+
+                let dayAge = d.day_age;
+                if (dayAge == null && d?.unit_details) {
+                    const unitDayAge = Object.values(d.unit_details)
+                        .map(detail => detail?.day_age)
+                        .find(value => value !== undefined && value !== null && value !== '');
+                    if (unitDayAge != null) {
+                        dayAge = unitDayAge;
+                    }
+                }
+                if (dayAge == null && entryDate) {
+                    const currentDate = new Date(`${d.date}T00:00:00`);
+                    if (!Number.isNaN(currentDate.getTime())) {
+                        dayAge = Math.floor((currentDate - entryDate) / 86400000) + 1;
+                    }
+                }
+
+                if (dayAge != null && !Number.isNaN(Number(dayAge))) {
+                    const numericDayAge = Number(dayAge);
+                    dateToDayAge[d.date] = numericDayAge;
+                    dayAgeToDate[numericDayAge] = d.date;
+                }
+            });
+
+            return { dateToDayAge, dayAgeToDate };
+        }
+
+        const { dateToDayAge: dateToDayAgeA, dayAgeToDate: dayAgeToDateA } = buildDayAgeMaps(dailySummariesA, batchInfoA);
+        const { dateToDayAge: dateToDayAgeB, dayAgeToDate: dayAgeToDateB } = buildDayAgeMaps(dailySummariesB, batchInfoB);
 
         const dayAgesA = [...new Set(Object.values(dateToDayAgeA))].sort((a, b) => a - b);
         const dayAgesB = [...new Set(Object.values(dateToDayAgeB))].sort((a, b) => a - b);
@@ -3055,11 +3237,6 @@
         if (commonDayAges.length === 0) {
             return `<section class="section"><div class="error-box">两个批次没有日龄数据，无法进行每日汇总对比</div></section>`;
         }
-
-        const dayAgeToDateA = {};
-        dailySummariesA.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateA[d.day_age] = d.date; });
-        const dayAgeToDateB = {};
-        dailySummariesB.forEach(d => { if (d.date && d.day_age != null) dayAgeToDateB[d.day_age] = d.date; });
 
         const batchNameA = dataA.batch_info?.batch_name || dataA.batch_info?.batch_id || '批次A';
         const batchNameB = dataB.batch_info?.batch_name || dataB.batch_info?.batch_id || '批次B';
@@ -3085,8 +3262,8 @@
         unitsTypeB.baoyu.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
         unitsTypeB.yufei.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-        function getDayAgeSummary(dailySummaries, dayAge) {
-            const date = dayAgeToDateA[dayAge] || dayAgeToDateB[dayAge];
+        function getDayAgeSummary(dailySummaries, dayAge, dayAgeToDate) {
+            const date = dayAgeToDate[dayAge];
             if (!date) return null;
             return dailySummaries.find(d => d.date === date) || null;
         }
@@ -3096,6 +3273,35 @@
             if (value >= 90) return { bg: 'var(--green-bg)', color: 'var(--green)' };
             if (value >= 70) return { bg: 'var(--orange-bg)', color: 'var(--orange)' };
             return { bg: 'rgba(220,38,38,0.1)', color: 'var(--red)' };
+        }
+
+        function buildComparisonMetricCell(summary, unit, metric, borderStyle, fallbackDateLabel) {
+            const unitDetail = summary?.unit_details?.[unit] || {};
+            const metricData = unitDetail?.[metric.key] || {};
+            const compliance = metricData.within_target_pct ?? null;
+            const hourlyCurve = metricData.hourly_curve || [];
+            const pigCount = unitDetail.pig_count || 0;
+            const targetTemp = unitDetail.target_temp || 26;
+            const colors = getComplianceColor(compliance);
+            const isEmpty = compliance === null || pigCount === 0 || hourlyCurve.length === 0 || hourlyCurve.every(v => v === null);
+            const curveJson = encodeURIComponent(JSON.stringify(hourlyCurve));
+            const dateLabel = summary?.date || fallbackDateLabel;
+
+            let highLowHtml = '';
+            if (metric.key === 'temperature' && !isEmpty) {
+                const validVals = hourlyCurve.filter(v => v !== null && !isNaN(v));
+                if (validVals.length > 0) {
+                    const highCount = validVals.filter(v => v > targetTemp + 3).length;
+                    const lowCount = validVals.filter(v => v < targetTemp - 3).length;
+                    const highPct = Math.round(highCount / validVals.length * 100);
+                    const lowPct = Math.round(lowCount / validVals.length * 100);
+                    if (highPct > 0 || lowPct > 0) {
+                        highLowHtml = `<div style="font-size:10px;margin-top:2px;opacity:0.85;">${highPct > 0 ? `&#8593;${highPct}%` : ''}${highPct > 0 && lowPct > 0 ? ' ' : ''}${lowPct > 0 ? `&#8595;${lowPct}%` : ''}</div>`;
+                    }
+                }
+            }
+
+            return `<td class="metric-cell" data-unit="${unit}" data-date="${dateLabel}" data-metric="${metric.key}" data-compliance="${compliance ?? ''}" data-targettemp="${targetTemp}" data-curve="${curveJson}" style="text-align:center;padding:4px 2px;cursor:${isEmpty ? 'default' : 'pointer'};${borderStyle}background:${isEmpty ? 'var(--bg)' : colors.bg};color:${isEmpty ? 'var(--text-muted)' : colors.color};font-weight:600;font-size:11px;transition:all 0.2s;" ${!isEmpty ? `onmouseenter="showDailyCurveTooltip(event, this)" onmouseleave="hideDailyCurveTooltip()"` : ''}><span style="font-size:13px;font-weight:600;">${compliance !== null ? compliance + '%' : '-'}</span>${highLowHtml}</td>`;
         }
 
         const metrics = [
@@ -3143,8 +3349,8 @@
             sectionHtml += `</tr></thead><tbody>`;
 
             commonDayAges.forEach(dayAge => {
-                const summaryA = getDayAgeSummary(dailySummariesA, dayAge);
-                const summaryB = getDayAgeSummary(dailySummariesB, dayAge);
+                const summaryA = getDayAgeSummary(dailySummariesA, dayAge, dayAgeToDateA);
+                const summaryB = getDayAgeSummary(dailySummariesB, dayAge, dayAgeToDateB);
 
                 const rowHasData =
                     unitsA.some(unit => metrics.some(m => summaryA?.unit_details?.[unit]?.[m.key]?.within_target_pct != null)) ||
@@ -3157,19 +3363,13 @@
 
                 unitsA.forEach(unit => {
                     metrics.forEach(m => {
-                        const unitData = summaryA?.unit_details?.[unit]?.[m.key] || {};
-                        const val = unitData.within_target_pct ?? null;
-                        const colors = getComplianceColor(val);
-                        sectionHtml += `<td style="text-align:center;padding:4px 2px;border:1px solid var(--border);background:${colors.bg};color:${colors.color};font-weight:600;font-size:11px;">${val !== null ? val + '%' : '-'}</td>`;
+                        sectionHtml += buildComparisonMetricCell(summaryA, unit, m, 'border:1px solid var(--border);', `${dayAge}天`);
                     });
                 });
                 unitsB.forEach(unit => {
                     metrics.forEach((m, metricIndex) => {
-                        const unitData = summaryB?.unit_details?.[unit]?.[m.key] || {};
-                        const val = unitData.within_target_pct ?? null;
-                        const colors = getComplianceColor(val);
                         const splitBorder = unit === unitsB[0] && metricIndex === 0 ? 'border-left:4px solid #c9732f;' : 'border-left:1px solid var(--border);';
-                        sectionHtml += `<td style="text-align:center;padding:4px 2px;${splitBorder}border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:${colors.bg};color:${colors.color};font-weight:600;font-size:11px;">${val !== null ? val + '%' : '-'}</td>`;
+                        sectionHtml += buildComparisonMetricCell(summaryB, unit, m, `${splitBorder}border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);`, `${dayAge}天`);
                     });
                 });
 
@@ -3262,9 +3462,187 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar red"></span>日龄-死亡数量曲线</div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="comparison-chart-legend">
+                        <span class="legend-item"><span class="legend-color batch-a-color"></span>${batchNameA}</span>
+                        <span class="legend-item"><span class="legend-color batch-b-color"></span>${batchNameB}</span>
+                    </div>
+                    <div class="chart-wrapper comparison-chart-wrapper">
+                        <canvas id="comparisonDeathChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </section>`;
 
         return html;
+    }
+
+    let comparisonDeathChart = null;
+
+    function initComparisonDeathChart(dataA, dataB) {
+        const ctx = document.getElementById('comparisonDeathChart');
+        if (!ctx) return;
+
+        if (comparisonDeathChart) {
+            comparisonDeathChart.destroy();
+        }
+
+        const deathAnalysisA = dataA.death_analysis || {};
+        const deathAnalysisB = dataB.death_analysis || {};
+        const batchInfoA = dataA.batch_info || {};
+        const batchInfoB = dataB.batch_info || {};
+        const dailySummariesA = dataA.daily_summaries || [];
+        const dailySummariesB = dataB.daily_summaries || [];
+        const batchNameA = batchInfoA.batch_name || batchInfoA.batch_id || '批次A';
+        const batchNameB = batchInfoB.batch_name || batchInfoB.batch_id || '批次B';
+
+        function buildDayAgeDeathMap(dailySummaries, deathAnalysis, batchInfo) {
+            const dayAgeToDeath = {};
+            const entryDate = batchInfo?.entry_date ? new Date(`${batchInfo.entry_date}T00:00:00`) : null;
+            const dailyDeaths = deathAnalysis?.daily_deaths || {};
+
+            dailySummaries.forEach(d => {
+                if (!d?.date) return;
+
+                let dayAge = d.day_age;
+                if (dayAge == null && d?.unit_details) {
+                    const unitDayAge = Object.values(d.unit_details)
+                        .map(detail => detail?.day_age)
+                        .find(value => value !== undefined && value !== null && value !== '');
+                    if (unitDayAge != null) {
+                        dayAge = unitDayAge;
+                    }
+                }
+                if (dayAge == null && entryDate) {
+                    const currentDate = new Date(`${d.date}T00:00:00`);
+                    if (!Number.isNaN(currentDate.getTime())) {
+                        dayAge = Math.floor((currentDate - entryDate) / 86400000) + 1;
+                    }
+                }
+
+                if (dayAge != null && !Number.isNaN(Number(dayAge))) {
+                    const numericDayAge = Number(dayAge);
+                    const deathCount = dailyDeaths[d.date] || 0;
+                    if (dayAgeToDeath[numericDayAge] !== undefined) {
+                        dayAgeToDeath[numericDayAge] += deathCount;
+                    } else {
+                        dayAgeToDeath[numericDayAge] = deathCount;
+                    }
+                }
+            });
+
+            return dayAgeToDeath;
+        }
+
+        const dayAgeDeathA = buildDayAgeDeathMap(dailySummariesA, deathAnalysisA, batchInfoA);
+        const dayAgeDeathB = buildDayAgeDeathMap(dailySummariesB, deathAnalysisB, batchInfoB);
+
+        const dayAgesA = Object.keys(dayAgeDeathA).map(Number).sort((a, b) => a - b);
+        const dayAgesB = Object.keys(dayAgeDeathB).map(Number).sort((a, b) => a - b);
+        const allDayAges = [...new Set([...dayAgesA, ...dayAgesB])].sort((a, b) => a - b);
+
+        const deathDataA = allDayAges.map(age => dayAgeDeathA[age] || 0);
+        const deathDataB = allDayAges.map(age => dayAgeDeathB[age] || 0);
+
+        const labels = allDayAges.map(age => `${age}日龄`);
+
+        comparisonDeathChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: batchNameA,
+                        data: deathDataA,
+                        borderColor: 'rgba(45, 106, 79, 1)',
+                        backgroundColor: 'rgba(45, 106, 79, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        fill: true,
+                        spanGaps: true
+                    },
+                    {
+                        label: batchNameB,
+                        data: deathDataB,
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        fill: true,
+                        spanGaps: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '日龄-死亡数量曲线对比',
+                        font: { size: 14, weight: '600' }
+                    },
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0]?.label || '';
+                            },
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                const value = context.parsed.y || 0;
+                                return `${label}: ${value}头`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '日龄'
+                        },
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 20
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '死亡数量 (头)'
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     }
 
     // ========== 辅助函数 ==========
@@ -3411,7 +3789,7 @@
         
         // === Tab: Daily Summary ===
         html += `<div class="tab-content" id="tab-hist-daily">`;
-        html += renderHistoricalDailyTable(data.daily_summaries || [], deathAnalysis);
+        html += renderHistoricalDailyTable(data.daily_summaries || [], deathAnalysis, data.batch_info || {});
         html += `</div>`;
         
         document.getElementById('reportContent').innerHTML = html;
@@ -3915,9 +4293,34 @@
     }
     
 
-    function renderHistoricalDailyTable(dailySummaries, deathAnalysis) {
+    function renderHistoricalDailyTable(dailySummaries, deathAnalysis, batchInfo = {}) {
         if (dailySummaries.length === 0) {
             return '<div class="error-box">暂无每日数据</div>';
+        }
+
+        function getDayAge(dayData) {
+            if (dayData?.day_age !== undefined && dayData?.day_age !== null && dayData?.day_age !== '') {
+                return dayData.day_age;
+            }
+            if (dayData?.unit_details) {
+                const unitDayAge = Object.values(dayData.unit_details)
+                    .map(detail => detail?.day_age)
+                    .find(value => value !== undefined && value !== null && value !== '');
+                if (unitDayAge != null) {
+                    return unitDayAge;
+                }
+            }
+            const entryDateStr = batchInfo?.entry_date;
+            const currentDateStr = dayData?.date;
+            if (!entryDateStr || !currentDateStr) {
+                return null;
+            }
+            const entryDate = new Date(entryDateStr);
+            const currentDate = new Date(currentDateStr);
+            if (Number.isNaN(entryDate.getTime()) || Number.isNaN(currentDate.getTime())) {
+                return null;
+            }
+            return Math.floor((currentDate - entryDate) / (1000 * 60 * 60 * 24)) + 1;
         }
 
         const dates = dailySummaries.map(d => d.date);
@@ -3977,7 +4380,7 @@
 
         dates.forEach((date, di) => {
             const dayData = dailySummaries[di];
-            const dayAge = dayData?.day_age ?? null;
+            const dayAge = getDayAge(dayData);
             const dayAgeHtml = dayAge !== null ? `<span style="font-size:11px;color:var(--text-secondary);font-weight:500;">日龄：${dayAge}天</span>` : '';
             
             let rowHtml = `<tr>
@@ -6455,7 +6858,7 @@
             </section>
         </div>`;
         html += `<div class="tab-content" id="tab-hist-units">${renderHistoricalUnitMetricTable(data)}</div>`;
-        html += `<div class="tab-content" id="tab-hist-daily">${renderHistoricalDailyTable(data.daily_summaries || [], data.death_analysis || {})}</div>`;
+        html += `<div class="tab-content" id="tab-hist-daily">${renderHistoricalDailyTable(data.daily_summaries || [], data.death_analysis || {}, data.batch_info || {})}</div>`;
         html += `<div class="tab-content" id="tab-hist-scope">${renderCompletenessSection(data)}${renderScopeNote()}</div>`;
         document.getElementById('reportContent').innerHTML = html;
         setTimeout(() => {
@@ -6685,7 +7088,7 @@
                 </div>
             </section>
         </div>`;
-        html += `<div class="tab-content" id="tab-hist-daily">${renderHistoricalDailyTable(data.daily_summaries || [], data.death_analysis || {})}${renderCompletenessSection(data)}</div>`;
+        html += `<div class="tab-content" id="tab-hist-daily">${renderHistoricalDailyTable(data.daily_summaries || [], data.death_analysis || {}, data.batch_info || {})}${renderCompletenessSection(data)}</div>`;
         document.getElementById('reportContent').innerHTML = html;
         setTimeout(() => {
             initHistoryChart(data.trend_data || {}, data.death_analysis || {}, 'temp');
