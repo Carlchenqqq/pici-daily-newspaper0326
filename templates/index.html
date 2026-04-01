@@ -1681,7 +1681,6 @@
             <div class="form-group">
                 <label>分析模式</label>
                 <select id="analysisMode" onchange="toggleAnalysisMode()">
-                    <option value="daily">单日分析</option>
                     <option value="historical" selected>历史趋势</option>
                     <option value="comparison">横向对比</option>
                 </select>
@@ -5056,31 +5055,19 @@
                 });
             }
 
-            if (chartData.temperature.target && chartData.temperature.target.some(v => v != null)) {
+            if (chartData.temperature.target !== undefined) {
                 const targets = chartData.temperature.target || [];
                 const upper = targets.map(t => t != null ? t + 3 : null);
                 const lower = targets.map(t => t != null ? t - 3 : null);
                 datasets.push({
                     label: '目标温度',
                     data: targets,
-                    borderColor: '#10b981',
-                    borderDash: [3, 3],
+                    borderColor: 'transparent',
+                    borderWidth: 0,
                     tension: 0.4,
                     pointRadius: 0,
-                    pointHoverRadius: 4,
+                    pointHoverRadius: 0,
                     spanGaps: true
-                });
-                datasets.push({
-                    label: '目标区间上限',
-                    data: upper,
-                    borderColor: 'rgba(16, 185, 129, 0.3)',
-                    borderDash: [3, 3],
-                    tension: 0.4,
-                    pointRadius: 0,
-                    fill: '-1',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    spanGaps: true,
-                    tooltip: { enabled: false }
                 });
                 datasets.push({
                     label: '目标区间下限',
@@ -5090,6 +5077,18 @@
                     tension: 0.4,
                     pointRadius: 0,
                     fill: false,
+                    spanGaps: true,
+                    tooltip: { enabled: false }
+                });
+                datasets.push({
+                    label: '目标区间上限',
+                    data: upper,
+                    borderColor: 'rgba(16, 185, 129, 0.3)',
+                    borderDash: [3, 3],
+                    tension: 0.4,
+                    pointRadius: 0,
+                    fill: '-1',
+                    backgroundColor: 'rgba(144, 238, 144, 0.35)',
                     spanGaps: true,
                     tooltip: { enabled: false }
                 });
@@ -7193,37 +7192,37 @@
                     pointHoverRadius: 4
                 });
             }
-            if (chartData?.temperature?.target?.some(v => v != null)) {
+            if (chartData?.temperature?.target !== undefined) {
                 const targets = chartData.temperature.target || [];
                 const upperTargets = targets.map(value => value != null ? value + 3 : null);
                 const lowerTargets = targets.map(value => value != null ? value - 3 : null);
                 datasets.push({
                     label: '目标温度',
                     data: targets,
-                    borderColor: '#10b981',
-                    borderDash: [3, 3],
+                    borderColor: 'transparent',
+                    borderWidth: 0,
                     tension: 0.4,
                     pointRadius: 0,
-                    pointHoverRadius: 4
-                });
-                datasets.push({
-                    label: '目标区间上限',
-                    data: upperTargets,
-                    borderColor: 'rgba(16,185,129,0.28)',
-                    borderDash: [3, 3],
-                    tension: 0.4,
-                    pointRadius: 0,
-                    fill: '-1',
-                    backgroundColor: 'rgba(16,185,129,0.10)'
+                    pointHoverRadius: 0
                 });
                 datasets.push({
                     label: '目标区间下限',
                     data: lowerTargets,
-                    borderColor: 'rgba(16,185,129,0.28)',
+                    borderColor: 'rgba(16, 185, 129, 0.3)',
                     borderDash: [3, 3],
                     tension: 0.4,
                     pointRadius: 0,
                     fill: false
+                });
+                datasets.push({
+                    label: '目标区间上限',
+                    data: upperTargets,
+                    borderColor: 'rgba(16, 185, 129, 0.3)',
+                    borderDash: [3, 3],
+                    tension: 0.4,
+                    pointRadius: 0,
+                    fill: '-1',
+                    backgroundColor: 'rgba(144, 238, 144, 0.35)'
                 });
             }
         } else if (type === 'humi') {
