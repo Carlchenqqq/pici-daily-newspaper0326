@@ -3731,6 +3731,7 @@
             <button class="nav-tab active" data-tab="hist-trend">历史趋势</button>
             <button class="nav-tab" data-tab="hist-units">单元对比</button>
             <button class="nav-tab" data-tab="hist-daily">每日汇总</button>
+            <button class="nav-tab" data-tab="hist-feeding">饲料耗用</button>
         </nav>`;
         
         // === Tab: Historical Trend ===
@@ -3790,7 +3791,12 @@
         html += `<div class="tab-content" id="tab-hist-daily">`;
         html += renderHistoricalDailyTable(data.daily_summaries || [], deathAnalysis, data.batch_info || {});
         html += `</div>`;
-        
+
+        // === Tab: Feeding Analysis ===
+        html += `<div class="tab-content" id="tab-hist-feeding">`;
+        html += renderFeedingAnalysis(data.feeding_analysis);
+        html += `</div>`;
+
         document.getElementById('reportContent').innerHTML = html;
 
         const chartData = trendData;
@@ -6561,6 +6567,102 @@
         });
     }
 
+    function renderFeedingAnalysis(feedingData) {
+        if (!feedingData || feedingData.error) {
+            return `<div class="error-box">暂无饲料耗用数据</div>`;
+        }
+
+        const summary = feedingData.summary || {};
+        const records = feedingData.records || [];
+
+        const statusClass = (status) => {
+            if (status === '超出') return 'chip bad';
+            if (status === '低于') return 'chip warn';
+            return 'chip good';
+        };
+
+        const html = `
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar green"></span>饲料耗用概览</div>
+            </div>
+            <div class="grid-4" style="margin-bottom: 20px;">
+                <div class="kpi-card">
+                    <div class="kpi-label">总记录次数</div>
+                    <div class="kpi-value">${summary.total_records || 0}</div>
+                    <div class="kpi-sub">饲料领用记录</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">总耗料量</div>
+                    <div class="kpi-value">${(summary.total_feed || 0).toLocaleString()}</div>
+                    <div class="kpi-sub">公斤 (Kg)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">平均日耗料</div>
+                    <div class="kpi-value">${(summary.avg_feed_per_pig || 0).toFixed(2)}</div>
+                    <div class="kpi-sub">Kg/头/天</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">耗用达标率</div>
+                    <div class="kpi-value ${summary.qualified_rate >= 80 ? 'good' : (summary.qualified_rate >= 60 ? 'warning' : 'danger')}">${summary.qualified_rate || 0}%</div>
+                    <div class="kpi-sub">${summary.qualified_count || 0}/${summary.total_records || 0} 次</div>
+                </div>
+            </div>
+            <div class="grid-3" style="margin-bottom: 20px;">
+                <div class="fact-card">
+                    <div class="fact-label">超出次数</div>
+                    <div class="fact-value" style="color: var(--red);">${summary.over_count || 0}</div>
+                    <div class="fact-sub">采食量高于上限</div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">正常次数</div>
+                    <div class="fact-value" style="color: var(--green);">${summary.normal_count || 0}</div>
+                    <div class="fact-sub">采食量在正常范围</div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">低于次数</div>
+                    <div class="fact-value" style="color: var(--orange);">${summary.under_count || 0}</div>
+                    <div class="fact-sub">采食量低于下限</div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title"><span class="section-title-bar blue"></span>饲料耗用明细</div>
+            </div>
+            <div class="metric-table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>日龄</th>
+                            <th>状态</th>
+                            <th>日均耗料(Kg)</th>
+                            <th>上限</th>
+                            <th>下限</th>
+                            <th>当前饲料(Kg)</th>
+                            <th>上次日期</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${records.map(r => `<tr>
+                            <td>${r.date || '-'}</td>
+                            <td>${r.day_age || '-'}</td>
+                            <td><span class="${statusClass(r.status)}">${r.status || '-'}</span></td>
+                            <td>${r.daily_feed_per_pig != null ? r.daily_feed_per_pig.toFixed(4) : '-'}</td>
+                            <td>${r.upper_limit != null ? r.upper_limit.toFixed(4) : '-'}</td>
+                            <td>${r.lower_limit != null ? r.lower_limit.toFixed(4) : '-'}</td>
+                            <td>${r.current_feed != null ? r.current_feed.toLocaleString() : '-'}</td>
+                            <td>${r.prev_date || '-'}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </section>`;
+
+        return html;
+    }
+
     function renderCompletenessSection(data) {
         const rows = computeHistoricalCompleteness(data);
         return `<section class="section">
@@ -6824,6 +6926,7 @@
             <button class="nav-tab active" data-tab="hist-trend">趋势</button>
             <button class="nav-tab" data-tab="hist-units">单元分项</button>
             <button class="nav-tab" data-tab="hist-daily">每日汇总</button>
+            <button class="nav-tab" data-tab="hist-feeding">饲料耗用</button>
             <button class="nav-tab" data-tab="hist-scope">数据说明</button>
         </nav>`;
         html += `<div class="tab-content active" id="tab-hist-trend">
@@ -6858,6 +6961,7 @@
         </div>`;
         html += `<div class="tab-content" id="tab-hist-units">${renderHistoricalUnitMetricTable(data)}</div>`;
         html += `<div class="tab-content" id="tab-hist-daily">${renderHistoricalDailyTable(data.daily_summaries || [], data.death_analysis || {}, data.batch_info || {})}</div>`;
+        html += `<div class="tab-content" id="tab-hist-feeding">${renderFeedingAnalysis(data.feeding_analysis)}</div>`;
         html += `<div class="tab-content" id="tab-hist-scope">${renderCompletenessSection(data)}${renderScopeNote()}</div>`;
         document.getElementById('reportContent').innerHTML = html;
         setTimeout(() => {
@@ -7056,6 +7160,7 @@
             <button class="nav-tab active" data-tab="hist-units">单元分项</button>
             <button class="nav-tab" data-tab="hist-trend">趋势</button>
             <button class="nav-tab" data-tab="hist-daily">每日汇总</button>
+            <button class="nav-tab" data-tab="hist-feeding">饲料耗用</button>
         </nav>`;
         html += `<div class="tab-content active" id="tab-hist-units">${renderHistoricalUnitMetricTable(data)}</div>`;
         html += `<div class="tab-content" id="tab-hist-trend">
@@ -7088,6 +7193,7 @@
             </section>
         </div>`;
         html += `<div class="tab-content" id="tab-hist-daily">${renderHistoricalDailyTable(data.daily_summaries || [], data.death_analysis || {}, data.batch_info || {})}${renderCompletenessSection(data)}</div>`;
+        html += `<div class="tab-content" id="tab-hist-feeding">${renderFeedingAnalysis(data.feeding_analysis)}</div>`;
         document.getElementById('reportContent').innerHTML = html;
         setTimeout(() => {
             initHistoryChart(data.trend_data || {}, data.death_analysis || {}, 'temp');

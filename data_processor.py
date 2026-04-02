@@ -14,6 +14,49 @@ warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 _cache = {}
 _CACHE_TTL = 300
 
+def validate_path_safe(base_dir: Path, target_path: str) -> Path:
+    """验证目标路径是否在允许的基础目录内，防止路径遍历攻击"""
+    try:
+        base = Path(base_dir).resolve()
+        target = Path(target_path).resolve()
+        
+        if not str(target).startswith(str(base)):
+            raise ValueError(f"路径越权访问被阻止: {target_path}")
+        
+        if not target.exists():
+            return target
+            
+        return target
+    except (ValueError, OSError) as e:
+        raise ValueError(f"无效的文件路径: {target_path}")
+
+def sanitize_batch_id(batch_id: str) -> str:
+    """清理 batch_id，移除所有可能导致路径遍历或注入的字符"""
+    if not batch_id or not isinstance(batch_id, str):
+        raise ValueError("batch_id 不能为空")
+    
+    dangerous_patterns = ['..', '/', '\\', '\x00', '|', ';', '&', '$', '`', '(', ')', '{', '}', '[', ']']
+    for pattern in dangerous_patterns:
+        if pattern in batch_id:
+            raise ValueError(f"batch_id 包含非法字符: {pattern}")
+    
+    if len(batch_id) > 100:
+        raise ValueError("batch_id 长度超过限制")
+    
+    return re.sub(r'[^\w\-]', '', batch_id)
+
+def validate_positive_int(value, default=1, max_value=10000):
+    """验证正整数参数，带范围限制"""
+    try:
+        int_val = int(value)
+        if int_val < 1:
+            return default
+        if int_val > max_value:
+            return max_value
+        return int_val
+    except (TypeError, ValueError):
+        return default
+
 def clean_nan(value):
     if value is None:
         return None
@@ -74,8 +117,11 @@ class DataProcessor:
         self._load_all_caches_from_files()
 
     def _get_cache_file_path(self, batch_id: str) -> Path:
-        safe_batch_id = batch_id.replace('/', '_').replace('\\', '_')
-        return self._cache_dir / f"historical_report_{safe_batch_id}.json"
+        safe_batch_id = sanitize_batch_id(batch_id)
+        cache_filename = f"historical_report_{safe_batch_id}.json"
+        target_path = self._cache_dir / cache_filename
+        validate_path_safe(self._cache_dir, str(target_path))
+        return target_path
 
     def _load_all_caches_from_files(self):
         if not self._cache_dir.exists():
@@ -256,19 +302,69 @@ class DataProcessor:
             return self._batch_config_cache
         
         config_path = self.data_root / "batch_config.json"
+        config = None
         if config_path.exists():
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                self._batch_config_cache = config
-                self._batch_config_time = now
-                self.batch_config = config
-                return config
         
-        config = self._default_batch_config()
+        if not config or "batches" not in config:
+            config = {"batches": []}
+        
+        existing_ids = {b["batch_id"] for b in config["batches"]}
+        new_batches_found = 0
+        
+        data_dir = self.data_root
+        if data_dir.exists():
+            for item in sorted(data_dir.iterdir()):
+                if item.is_dir() and not item.name.startswith('.') and item.name not in existing_ids:
+                    units, unit_types = self._scan_batch_units(item)
+                    if units:
+                        new_batch = {
+                            "batch_id": item.name,
+                            "batch_name": item.name,
+                            "farm_name": "",
+                            "entry_date": "",
+                            "target_temp": 0,
+                            "units": sorted(units),
+                            "unit_types": unit_types,
+                            "total_pig_count": 0,
+                            "feeding_count": 0,
+                            "feed_ratio_130kg": 0,
+                            "qualified_rate": 0
+                        }
+                        config["batches"].append(new_batch)
+                        new_batches_found += 1
+        
+        if new_batches_found > 0:
+            try:
+                with open(config_path, 'w', encoding='utf-8') as f:
+                    json.dump(config, f, ensure_ascii=False, indent=2)
+                print(f"[批次自动发现] 新增 {new_batches_found} 个批次")
+            except Exception as e:
+                print(f"[保存批次配置失败] {e}")
+        
         self._batch_config_cache = config
         self._batch_config_time = now
         self.batch_config = config
         return config
+    
+    def _scan_batch_units(self, batch_dir):
+        """扫描批次目录获取单元列表"""
+        units = []
+        unit_types = {}
+        for f in batch_dir.iterdir():
+            if f.is_file() and not f.name.startswith('~') and '环境数据' in f.name:
+                unit_num = self.parse_unit_number(f.name)
+                if unit_num and unit_num not in units:
+                    units.append(unit_num)
+                    try:
+                        df = pd.read_excel(f, sheet_name=0, nrows=1)
+                        if not df.empty:
+                            unit_type = str(df.iloc[0].get('单元类型', '')).strip().lower()
+                            unit_types[unit_num] = unit_type
+                    except Exception:
+                        pass
+        return units, unit_types
     
     def _default_batch_config(self) -> Dict:
         """自动扫描data_root目录下的文件夹作为批次"""
@@ -293,7 +389,7 @@ class DataProcessor:
                                     if not df.empty:
                                         unit_type = str(df.iloc[0].get('单元类型', '')).strip().lower()
                                         unit_types[unit_num] = unit_type
-                                except:
+                                except Exception:
                                     pass
                     
                     if units:
@@ -527,6 +623,12 @@ class DataProcessor:
         return result
     
     def _load_sheet(self, file_path: str, sheet_name: str, usecols: Optional[List[str]] = None) -> pd.DataFrame:
+        try:
+            validate_path_safe(self.data_root, file_path)
+        except ValueError as e:
+            print(f"Security: {e}")
+            return pd.DataFrame()
+        
         key = f"{file_path}::{sheet_name}"
         if usecols is None and key in self._sheet_cache:
             return self._sheet_cache[key]  # type: ignore
@@ -709,7 +811,7 @@ class DataProcessor:
                 try:
                     with open(death_config_path, 'r', encoding='utf-8') as f:
                         all_data = json.load(f)
-                except:
+                except (json.JSONDecodeError, IOError, OSError):
                     all_data = {}
             all_data[batch_id] = {}
             for record in death_records.values():
@@ -1689,7 +1791,7 @@ class DataProcessor:
                 unit_info_df = self._load_sheet(env_file["path"], '单元信息')
                 if not unit_info_df.empty:
                     unit_type = str(unit_info_df.iloc[0].get('单元类型', '')).strip().lower()
-            except:
+            except Exception:
                 pass
             
             unit_fans = {"unit": unit, "unit_type": unit_type, "variable_fans": [], "time_labels": []}
@@ -2224,6 +2326,7 @@ class DataProcessor:
                     unit_comparison = self._build_historical_unit_comparison(daily_summaries)
                     unit_evaluation = self._evaluate_unit_performance(daily_summaries, batch_info)
                     historical_anomalies = self._detect_historical_anomalies(daily_summaries, batch_info)
+                    feeding_analysis = self._load_feeding_data(batch_id)
                     return {
                         "batch_info": batch_info,
                         "date_range": {
@@ -2237,7 +2340,8 @@ class DataProcessor:
                         "trend_data": trend_data,
                         "unit_comparison": unit_comparison,
                         "unit_evaluation": unit_evaluation,
-                        "historical_anomalies": historical_anomalies
+                        "historical_anomalies": historical_anomalies,
+                        "feeding_analysis": feeding_analysis
                     }
                 print(f"[缓存失效] 批次 {batch_id} ({start_date} ~ {end_date}) 缺少日龄，重新生成历史汇总")
         
@@ -2268,6 +2372,9 @@ class DataProcessor:
         # 历史异常检测
         historical_anomalies = self._detect_historical_anomalies(daily_summaries, batch_info)
 
+        # 加载饲料耗用数据
+        feeding_analysis = self._load_feeding_data(batch_id)
+
         result = {
             "batch_info": batch_info,
             "date_range": {
@@ -2281,7 +2388,8 @@ class DataProcessor:
             "trend_data": trend_data,
             "unit_comparison": unit_comparison,
             "unit_evaluation": unit_evaluation,
-            "historical_anomalies": historical_anomalies
+            "historical_anomalies": historical_anomalies,
+            "feeding_analysis": feeding_analysis
         }
 
         self._save_report_to_cache_file(batch_id, result)
@@ -3246,6 +3354,102 @@ class DataProcessor:
             "peak_death_date": max(daily_deaths.items(), key=lambda x: x[1])[0] if daily_deaths else None,
             "peak_death_count": max(daily_deaths.values()) if daily_deaths else 0
         }
+    
+    def _load_feeding_data(self, batch_id: str) -> Dict[str, Any]:
+        """加载饲料耗用数据"""
+        batch_dir = self.data_root / batch_id
+        if not batch_dir.exists():
+            return {"error": "批次目录不存在"}
+        
+        feeding_file = batch_dir / "过程采食量监控报表.xlsx"
+        if not feeding_file.exists():
+            return {"error": "饲料监控报表文件不存在"}
+        
+        try:
+            df = pd.read_excel(feeding_file, sheet_name=0)
+            
+            records = []
+            for _, row in df.iterrows():
+                date_val = row.get("饲料领用日期")
+                prev_date_val = row.get("上一次领用日期")
+
+                date_str = ""
+                if pd.notna(date_val):
+                    try:
+                        if isinstance(date_val, str):
+                            date_str = date_val[:10] if len(date_val) >= 10 else date_val
+                        else:
+                            date_str = str(date_val)[:10]
+                    except Exception:
+                        date_str = str(date_val)
+
+                prev_date_str = ""
+                if pd.notna(prev_date_val):
+                    try:
+                        if isinstance(prev_date_val, str):
+                            prev_date_str = prev_date_val[:10] if len(prev_date_val) >= 10 else prev_date_val
+                        else:
+                            prev_date_str = str(prev_date_val)[:10]
+                    except Exception:
+                        prev_date_str = str(prev_date_val)
+
+                record = {
+                    "date": date_str,
+                    "day_age": clean_nan(row.get("日龄")),
+                    "stage": str(row.get("日龄阶段", "")) if pd.notna(row.get("日龄阶段")) else "",
+                    "status": str(row.get("状态", "")) if pd.notna(row.get("状态")) else "",
+                    "is_qualified": clean_nan(row.get("是否合格")),
+                    "upper_limit": clean_nan(row.get("上限")),
+                    "lower_limit": clean_nan(row.get("下限")),
+                    "daily_feed_per_pig": clean_nan(row.get("日均耗料")),
+                    "total_pig_days": clean_nan(row.get("总日龄")),
+                    "total_feed": clean_nan(row.get("总消耗")),
+                    "total_pigs": clean_nan(row.get("总存栏")),
+                    "current_day_age": clean_nan(row.get("当前日龄")),
+                    "current_feed": clean_nan(row.get("当前饲料")),
+                    "current_pigs": clean_nan(row.get("当前存栏")),
+                    "current_feed_per_pig": clean_nan(row.get("当前耗用")),
+                    "prev_day_age": clean_nan(row.get("上一次日龄")),
+                    "prev_date": prev_date_str,
+                    "prev_feed": clean_nan(row.get("上一次饲料领用")),
+                    "prev_pigs": clean_nan(row.get("上一次存栏")),
+                    "prev_feed_per_pig": clean_nan(row.get("上一次耗用"))
+                }
+                if record["date"] and record["date"] not in ["", "nan", "NaT", "None"]:
+                    records.append(record)
+            
+            if not records:
+                return {"error": "饲料数据为空"}
+            
+            total_feed = sum(r["total_feed"] or 0 for r in records if r["total_feed"])
+            total_pig_days = sum(r["total_pig_days"] or 0 for r in records if r["total_pig_days"])
+            avg_feed_per_pig = (total_feed / total_pig_days) if total_pig_days > 0 else 0
+            
+            qualified_count = sum(1 for r in records if r["is_qualified"] == 0)
+            total_count = len(records)
+            qualified_rate = (qualified_count / total_count * 100) if total_count > 0 else 0
+            
+            over_count = sum(1 for r in records if r["status"] == "超出")
+            normal_count = sum(1 for r in records if r["status"] == "正常")
+            under_count = sum(1 for r in records if r["status"] == "低于")
+            
+            return {
+                "success": True,
+                "records": records,
+                "summary": {
+                    "total_records": total_count,
+                    "total_feed": total_feed,
+                    "total_pig_days": total_pig_days,
+                    "avg_feed_per_pig": round(avg_feed_per_pig, 4),
+                    "qualified_rate": round(qualified_rate, 2),
+                    "qualified_count": qualified_count,
+                    "over_count": over_count,
+                    "normal_count": normal_count,
+                    "under_count": under_count
+                }
+            }
+        except Exception as e:
+            return {"error": f"读取饲料数据失败: {str(e)}"}
     
     def _build_historical_trend(self, daily_summaries: List[Dict]) -> Dict:
         """构建历史趋势数据（用于图表）"""

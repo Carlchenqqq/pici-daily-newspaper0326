@@ -1,12 +1,30 @@
+import logging
 from flask import Flask, render_template, jsonify, request
-from data_processor import DataProcessor, clean_dict
+from data_processor import DataProcessor, clean_dict, sanitize_batch_id, validate_positive_int
 import os
 import time
 import warnings
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB 请求体限制
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return jsonify({"success": False, "message": "请求数据过大，最大允许10MB"}), 413
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"success": False, "message": "接口不存在"}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"服务器内部错误: {error}", exc_info=True)
+    return jsonify({"success": False, "message": "服务器内部错误，请稍后重试"}), 500
 
 DATA_ROOT = os.path.dirname(os.path.abspath(__file__))
 processor = DataProcessor(DATA_ROOT)
@@ -39,7 +57,12 @@ def get_default_batch_id():
 
 def resolve_batch_id(provided_batch_id=None):
     batch_id = provided_batch_id or request.args.get('batch_id')
-    return batch_id or get_default_batch_id()
+    if not batch_id:
+        return get_default_batch_id()
+    try:
+        return sanitize_batch_id(batch_id)
+    except ValueError:
+        return get_default_batch_id()
 
 def get_valid_batch_or_error(batch_id):
     if not batch_id:
@@ -81,12 +104,25 @@ def get_batch_info(batch_id):
 @app.route('/api/batch/update-field', methods=['POST'])
 def update_batch_field():
     data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "message": "无效的请求数据"}), 400
+    
     batch_id = data.get('batch_id')
     field = data.get('field')
     value = data.get('value')
     
     if not batch_id or not field:
         return jsonify({"success": False, "message": "Missing batch_id or field"}), 400
+    
+    allowed_fields = ['batch_name', 'farm_name', 'entry_date', 'target_temp', 
+                      'total_pig_count', 'feeding_count', 'feed_ratio_130kg', 'qualified_rate']
+    if field not in allowed_fields:
+        return jsonify({"success": False, "message": f"不允许修改的字段: {field}"}), 400
+    
+    try:
+        batch_id = sanitize_batch_id(batch_id)
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
     
     result = processor.update_batch_field(batch_id, field, value)
     return jsonify(result)
@@ -143,8 +179,8 @@ def get_deep_analysis():
 def get_trend():
     batch_id = resolve_batch_id()
     date = request.args.get('date', '2026-03-10')
-    page = int(request.args.get('page', 1))
-    page_size = int(request.args.get('page_size', 7))
+    page = validate_positive_int(request.args.get('page', 1), default=1, max_value=1000)
+    page_size = validate_positive_int(request.args.get('page_size', 7), default=7, max_value=100)
 
     _, error_response = get_valid_batch_or_error(batch_id)
     if error_response:
@@ -164,9 +200,23 @@ def get_trend():
 @app.route('/api/death-culling', methods=['POST'])
 def save_death_culling():
     data = request.json
+    if not data:
+        return jsonify({"success": False, "message": "无效的请求数据"}), 400
+    
     batch_id = data.get('batch_id')
     date = data.get('date')
     records = data.get('records', [])
+    
+    if not batch_id or not date:
+        return jsonify({"success": False, "message": "缺少必要参数: batch_id 或 date"}), 400
+    
+    if not isinstance(records, list) or len(records) > 1000:
+        return jsonify({"success": False, "message": "records 参数格式错误或超过限制"}), 400
+    
+    try:
+        batch_id = sanitize_batch_id(batch_id)
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
     
     processor.save_death_culling_data(batch_id, date, records)
     clear_cache()  # Clear cache after data change
@@ -377,4 +427,6 @@ def get_export_package():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    import os
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
